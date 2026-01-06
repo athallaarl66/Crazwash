@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10,2)
+  stock       Int      @default(0)
+  category    Category @default(BASIC)
+  duration    Int
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems  OrderItem[]
+}
+
+enum Category {
+  BASIC
+  PREMIUM
+  DEEP
+  TREATMENT
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  orderNumber   String        @unique
+
+  customerId    Int?
+  customer      User?         @relation(fields: [customerId], references: [id])
+
+  customerName  String
+  customerPhone String
+  customerEmail String?
+
+  totalPrice    Decimal       @db.Decimal(10,2)
+
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+
+  paymentProof  String?
+  pickupDate    DateTime?
+  deliveryDate  DateTime?
+
+  address       String
+  city          String        @default("Bandung")
+  notes         String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  items         OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  IN_PROGRESS
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10,2)
+  subtotal  Decimal  @db.Decimal(10,2)
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, productId])
+}
