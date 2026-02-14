@@ -1,279 +1,336 @@
-// src/app/(public)/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sparkles,
-  Clock,
-  Shield,
-  Truck,
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
+import { Clock, Shield, Truck, ArrowRight, CheckCircle } from "lucide-react";
 
-// Layout
 import { PublicNavbar } from "@/components/layout/PublicNavbar";
 import { Footer } from "@/components/layout/Footer";
 
+/* ================= TYPES ================= */
+
+type ServiceItem = {
+  name: string;
+  price: string;
+  badge?: string;
+};
+
+type CategoryKey = "shoes" | "bags" | "special";
+
+type ServiceCategory = Record<CategoryKey, ServiceItem[]>;
+
+/* ================= DATA ================= */
+
+const services: ServiceCategory = {
+  shoes: [
+    { name: "Deep Clean", price: "50K", badge: "BEST" },
+    { name: "Cuci Express", price: "70K", badge: "FAST" },
+    { name: "Leather Care", price: "60K" },
+    { name: "Suede Care", price: "65K" },
+    { name: "Kids Shoes", price: "35K" },
+    { name: "Flatshoes", price: "30K" },
+    { name: "Sandal", price: "30K" },
+  ],
+  bags: [
+    { name: "Bag S", price: "30K" },
+    { name: "Bag M", price: "40K" },
+    { name: "Bag L", price: "60K" },
+    { name: "Bag XL", price: "100K" },
+    { name: "Bag XXL", price: "170K" },
+  ],
+  special: [
+    { name: "Reglue", price: "100K", badge: "REPAIR" },
+    { name: "Repaint Midsole", price: "80K" },
+    { name: "Repaint Upper", price: "130K" },
+    { name: "Unyellow", price: "90K", badge: "POPULAR" },
+  ],
+};
+
+const CATEGORY_CONFIG = {
+  shoes: {
+    title: "👟 Cleaning Treatment",
+  },
+  bags: {
+    title: "👜 Bag Cleaning",
+  },
+  special: {
+    title: "✨ Special Treatment",
+  },
+} as const;
+
+/* ================= PAGE ================= */
+
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <PublicNavbar />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
-        <div className="container relative mx-auto px-4 py-20 md:py-32 animate-fade-in">
-          <div className="max-w-3xl">
-            <Badge className="mb-4 bg-blue-500/20 text-white border-blue-400">
-              Trusted by 1000+ Customers in Bandung
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Cuci Sepatu Profesional dengan Hasil Maksimal
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8">
-              Layanan cuci sepatu terpercaya di Bandung. Pickup & delivery
-              gratis untuk area tertentu.
-            </p>
+      {/* ================= HERO ================= */}
+      <section className="relative overflow-hidden bg-primary text-primary-foreground">
+        {/* Animated Background Blobs */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-pulse-slow" />
+        <div
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/40 rounded-full blur-3xl animate-pulse-slow"
+          style={{ animationDelay: "1s" }}
+        />
 
-            {/* Hero Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              {/* Primary */}
-              <Link href="/order">
-                <Button
-                  size="lg"
-                  className="bg-white text-blue-600 font-semibold cursor-pointer hover:text-blue-100 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-md"
-                >
-                  Pesan Sekarang
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Services Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">
-              Layanan Kami
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto animate-fade-in delay-100">
-              Pilih paket sesuai kebutuhan sepatu kamu
-            </p>
-          </div>
+        <div className="relative container-custom mx-auto py-20 lg:py-28 text-center max-w-4xl">
+          <Badge
+            variant="secondary"
+            className="mb-6 bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-medium"
+          >
+            Premium Shoe & Bag Cleaning
+          </Badge>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                title: "Basic Wash",
-                price: "Rp 25.000",
-                icon: Sparkles,
-                iconBg: "bg-blue-100 text-blue-600",
-                items: ["Cuci luar dalam", "Sikat lembut", "Pengering"],
-              },
-              {
-                title: "Premium Clean",
-                price: "Rp 45.000",
-                icon: Sparkles,
-                iconBg: "bg-purple-100 text-purple-600",
-                items: [
-                  "Deep cleaning",
-                  "Polish & shine",
-                  "Deodorizer",
-                  "Waterproof spray",
-                ],
-                badge: "Most Popular",
-                badgeColor: "bg-blue-600 text-white", // sekarang senada biru
-              },
-              {
-                title: "Deep Cleaning",
-                price: "Rp 65.000",
-                icon: Sparkles,
-                iconBg: "bg-green-100 text-green-600",
-                items: [
-                  "Ultrasonic clean",
-                  "Premium polish",
-                  "UV protection",
-                  "Box cleaning",
-                ],
-              },
-              {
-                title: "Treatment Khusus",
-                price: "Rp 85.000",
-                icon: Shield,
-                iconBg: "bg-orange-100 text-orange-600",
-                items: [
-                  "Suede treatment",
-                  "Leather care",
-                  "Canvas restoration",
-                  "Color restoration",
-                ],
-              },
-            ].map((service, idx) => {
-              const Icon = service.icon;
-              return (
-                <Card
-                  key={idx}
-                  className="group relative hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer animate-fade-in"
-                >
-                  {service.badge && (
-                    <Badge
-                      className={`absolute -top-3 left-1/2 -translate-x-1/2 z-10 font-bold ${service.badgeColor}`}
-                    >
-                      {service.badge}
-                    </Badge>
-                  )}
-                  <CardHeader className="flex flex-col items-center">
-                    <div
-                      className={`w-12 h-12 ${service.iconBg} rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:rotate-6`}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <CardTitle className="text-center font-semibold">
-                      {service.title}
-                    </CardTitle>
-                    <CardDescription className="text-2xl font-bold text-gray-900 mt-2">
-                      {service.price}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                      {service.items.map((item, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors duration-300"
-                        >
-                          <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+          <h1 className="text-h1 mb-6 animate-fade-in">
+            Bikin Sepatu & Tas
+            <span className="block text-secondary mt-2">
+              Kembali Seperti Baru
+            </span>
+          </h1>
 
-      {/* How It Works Section */}
-      <section className="py-20 bg-gray-50 animate-fade-in">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Cara Kerja</h2>
-            <p className="text-gray-600 text-lg">
-              Simple dan mudah dalam 4 langkah
-            </p>
-          </div>
+          <p className="text-body-lg opacity-90 mb-6 max-w-2xl mx-auto">
+            Deep clean profesional + pickup delivery terpercaya.
+          </p>
 
-          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            {["Pesan Online", "Pickup Gratis", "Proses Cuci", "Delivery"].map(
-              (step, idx) => (
-                <div key={idx} className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                    {idx + 1}
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">{step}</h3>
-                  <p className="text-gray-600 text-sm">
-                    {
-                      {
-                        0: "Pilih layanan dan isi form pemesanan",
-                        1: "Kami jemput sepatu di lokasi kamu",
-                        2: "Sepatu dicuci profesional 2-3 hari",
-                        3: "Sepatu bersih diantar kembali",
-                      }[idx]
-                    }
-                  </p>
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us Section */}
-      <section className="py-20 bg-white animate-fade-in">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Kenapa Pilih Kami?
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                icon: Clock,
-                title: "Cepat & Tepat Waktu",
-                desc: "Proses 2-3 hari kerja dengan hasil maksimal",
-                bg: "bg-blue-100 text-blue-600",
-              },
-              {
-                icon: Shield,
-                title: "Garansi 100%",
-                desc: "Jaminan uang kembali jika tidak puas",
-                bg: "bg-purple-100 text-purple-600",
-              },
-              {
-                icon: Truck,
-                title: "Pickup & Delivery",
-                desc: "Gratis untuk area Bandung tertentu",
-                bg: "bg-green-100 text-green-600",
-              },
-            ].map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <div key={idx} className="text-center">
-                  <div
-                    className={`w-16 h-16 ${item.bg} rounded-full flex items-center justify-center mx-auto mb-4`}
-                  >
-                    <Icon className="h-8 w-8" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                  <p className="text-gray-600">{item.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <div className="container mx-auto px-4 text-center flex flex-col items-center gap-6">
-          <h2 className="text-3xl md:text-4xl font-bold">
-            Siap Membuat Sepatu Kamu Bersih Kembali?
-          </h2>
-          <p className="text-xl text-blue-100 max-w-2xl">
-            Pesan sekarang dan dapatkan sepatu bersih maksimal dalam 2-3 hari!
+          <p className="font-semibold text-secondary mb-10 tracking-wide text-lg">
+            "ANDA PUAS SAYA TEWAS"
           </p>
 
           <Link href="/order">
             <Button
               size="lg"
-              className="
-          bg-white text-blue-600 flex items-center justify-center gap-2 
-          hover:bg-gray-200 hover:shadow-lg hover:-translate-y-1 
-          transition-all duration-200 ease-in-out cursor-pointer
-        "
+              className="bg-card text-card-foreground hover:bg-card/90 shadow-soft-lg rounded-full px-10 py-6 text-base font-semibold transition-all duration-300 hover:scale-105"
             >
               Pesan Sekarang
-              <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ================= PRICE LIST - COMPACT ================= */}
+      <section className="py-16 lg:py-20">
+        <div className="container-custom mx-auto max-w-4xl">
+          <h2 className="text-h2 mb-10 text-center">Price List</h2>
+
+          {/* GRID LAYOUT - 2 COLUMNS FOR SHOES & BAGS */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* SHOES */}
+            <div className="card-custom p-6">
+              <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+                {CATEGORY_CONFIG.shoes.title}
+              </h3>
+              <div className="space-y-2.5">
+                {services.shoes.map((service, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-2 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm group-hover:text-accent transition-colors">
+                        {service.name}
+                      </span>
+                      {service.badge && (
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs px-2 py-0.5 ${
+                            service.badge === "BEST"
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-secondary text-secondary-foreground"
+                          }`}
+                        >
+                          {service.badge}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="font-bold text-accent tabular-nums text-sm">
+                      {service.price}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* BAGS */}
+            <div className="card-custom p-6">
+              <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+                {CATEGORY_CONFIG.bags.title}
+              </h3>
+              <div className="space-y-2.5">
+                {services.bags.map((service, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-2 group"
+                  >
+                    <span className="text-sm group-hover:text-accent transition-colors">
+                      {service.name}
+                    </span>
+                    <span className="font-bold text-accent tabular-nums text-sm">
+                      {service.price}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SPECIAL TREATMENT - FULL WIDTH */}
+          <div className="card-custom p-6">
+            <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+              {CATEGORY_CONFIG.special.title}
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+              {services.special.map((service, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between py-2 group"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm group-hover:text-accent transition-colors">
+                      {service.name}
+                    </span>
+                    {service.badge && (
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs px-2 py-0.5 ${
+                          service.badge === "REPAIR"
+                            ? "bg-warning text-warning-foreground"
+                            : "bg-primary text-primary-foreground"
+                        }`}
+                      >
+                        {service.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="font-bold text-accent tabular-nums text-sm">
+                    {service.price}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA BUTTON */}
+          <div className="text-center mt-10">
+            <Link href="/services">
+              <Button
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-accent shadow-soft-lg rounded-full px-10 py-6 text-base font-semibold transition-all duration-300"
+              >
+                Lihat Semua Layanan
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= WHY US ================= */}
+      <section className="py-16 lg:py-20 bg-muted">
+        <div className="container-custom mx-auto">
+          <h2 className="text-h2 mb-12 text-center">Kenapa Pilih Crazwash?</h2>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              {
+                icon: Clock,
+                title: "Cepat & Tepat",
+                desc: "Proses 2-3 hari profesional",
+                colorBg: "bg-warning/10",
+                colorText: "text-warning",
+                colorHoverBg: "group-hover:bg-warning",
+                colorHoverText: "group-hover:text-warning-foreground",
+              },
+              {
+                icon: Shield,
+                title: "Garansi Aman",
+                desc: "Dijamin aman untuk material",
+                colorBg: "bg-success/10",
+                colorText: "text-success",
+                colorHoverBg: "group-hover:bg-success",
+                colorHoverText: "group-hover:text-success-foreground",
+              },
+              {
+                icon: Truck,
+                title: "Pickup Delivery",
+                desc: "Gratis area tertentu",
+                colorBg: "bg-info/10",
+                colorText: "text-info",
+                colorHoverBg: "group-hover:bg-info",
+                colorHoverText: "group-hover:text-info-foreground",
+              },
+            ].map((item, i) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={i}
+                  className="text-center group hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div
+                    className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${item.colorBg} ${item.colorText} ${item.colorHoverBg} ${item.colorHoverText}`}
+                  >
+                    <Icon className="h-7 w-7" strokeWidth={2} />
+                  </div>
+
+                  <h3 className="text-h5 mb-2">{item.title}</h3>
+                  <p className="text-body-sm text-muted-foreground">
+                    {item.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CTA ================= */}
+      <section className="py-16 lg:py-20 bg-gradient-to-br from-primary via-accent to-secondary text-primary-foreground text-center relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent)]" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+
+        <div className="relative container-custom mx-auto">
+          <h2 className="text-h2 mb-6">Siap Bikin Barangmu Bersih Lagi?</h2>
+
+          <p className="text-body-lg opacity-90 mb-10 max-w-2xl mx-auto">
+            Kualitas premium, harga UMKM. Gratis pickup untuk area tertentu!
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/order">
+              <Button
+                size="lg"
+                variant="default"
+                className="bg-white text-primary hover:bg-transparent hover:text-white hover:border-2 hover:border-white rounded-full px-10 py-6 text-base font-semibold backdrop-blur-sm transition-all duration-300 group"
+              >
+                <span className="flex items-center gap-2">
+                  Pesan Sekarang
+                  <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </Button>
+            </Link>
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-10 flex flex-wrap gap-6 justify-center text-sm opacity-90">
+            <span className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              100% Aman
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Berpengalaman
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Hasil Maksimal
+            </span>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );

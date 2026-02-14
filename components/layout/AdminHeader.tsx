@@ -57,12 +57,14 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <div className="flex items-center gap-2 md:gap-3">
           {/* User Info - Hidden on mobile */}
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium">Admin User</p>
+            <p className="text-sm font-medium">Crazwash Admin</p>
             <p className="text-xs text-gray-500">admin@shoeswash.com</p>
           </div>
           {/* Avatar */}
-          <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-blue-600 flex items-center justify-center">
-            <span className="text-white font-medium text-sm">A</span>
+          <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md ring-2 ring-blue-100">
+            <span className="text-white font-semibold text-sm tracking-wide">
+              Cr
+            </span>
           </div>
         </div>
       </div>
