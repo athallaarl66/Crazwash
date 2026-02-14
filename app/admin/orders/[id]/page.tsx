@@ -3,12 +3,17 @@ import { getOrderById } from "@/lib/orderService";
 import { notFound } from "next/navigation";
 import OrderDetailView from "./OrderDetailView";
 
+interface OrderDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
 export default async function OrderDetailPage({
   params,
-}: {
-  params: { id: string };
-}) {
-  const orderId = parseInt(params.id);
+}: OrderDetailPageProps) {
+  // Next.js 15: params adalah Promise
+  const { id } = await params;
+
+  const orderId = parseInt(id);
 
   if (isNaN(orderId)) {
     notFound();

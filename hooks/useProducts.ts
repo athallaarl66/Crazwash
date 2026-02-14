@@ -1,8 +1,8 @@
-// hooks/useProducts
 "use client";
 
 import { useEffect, useState } from "react";
-import { Category } from "@prisma/client";
+import { ProductCategory } from "@prisma/client";
+import { api } from "@/lib/api-client";
 
 /* =====================
    TYPES
@@ -11,9 +11,8 @@ export type Product = {
   id: number;
   name: string;
   description?: string | null;
-  price: string; // Prisma Decimal -> string
-  stock: number;
-  category: Category;
+  price: string;
+  category: ProductCategory;
   duration: number;
   isActive: boolean;
   createdAt: string;
@@ -24,9 +23,8 @@ export type ProductFormData = {
   name: string;
   description: string;
   price: string;
-  stock: string;
   duration: string;
-  category: Category;
+  category: ProductCategory;
   isActive: boolean;
 };
 
@@ -37,9 +35,8 @@ const emptyForm: ProductFormData = {
   name: "",
   description: "",
   price: "",
-  stock: "",
   duration: "",
-  category: Category.BASIC,
+  category: ProductCategory.BASIC,
   isActive: true,
 };
 
@@ -58,11 +55,17 @@ export function useProducts() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/products");
-      const data = await res.json();
-      setProducts(data);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
+      const result = await api.get<{ success: boolean; data: Product[] }>(
+        "/api/admin/products",
+      );
+
+      if (result.success) {
+        setProducts(result.data);
+      } else {
+        console.error("Failed to fetch products");
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch products:", err.message);
     } finally {
       setLoading(false);
     }
@@ -78,17 +81,22 @@ export function useProducts() {
   const addProduct = async () => {
     if (!formData.name || !formData.price || !formData.duration) return false;
 
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const result = await api.post<{ success: boolean; data: Product }>(
+        "/api/admin/products",
+        formData,
+      );
 
-    if (!res.ok) return false;
-
-    await fetchProducts();
-    setFormData(emptyForm);
-    return true;
+      if (result.success) {
+        await fetchProducts();
+        setFormData(emptyForm);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Failed to create product:", err);
+      return false;
+    }
   };
 
   /* =====================
@@ -97,56 +105,64 @@ export function useProducts() {
   const updateProduct = async (id: number) => {
     if (!formData.name || !formData.price || !formData.duration) return false;
 
-    const res = await fetch(`/api/products/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const result = await api.patch<{ success: boolean; data: Product }>(
+        `/api/admin/products/${id}`,
+        formData,
+      );
 
-    if (!res.ok) return false;
-
-    await fetchProducts();
-    resetForm();
-    return true;
+      if (result.success) {
+        await fetchProducts();
+        resetForm();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Failed to update product:", err);
+      return false;
+    }
   };
 
   /* =====================
      DELETE
   ===================== */
   const deleteProduct = async (id: number) => {
-    const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const result = await api.delete<{ success: boolean }>(
+        `/api/admin/products/${id}`,
+      );
 
-    if (!res.ok) return false;
-
-    await fetchProducts();
-    setSelectedProduct(null);
-    return true;
+      if (result.success) {
+        await fetchProducts();
+        setSelectedProduct(null);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Failed to delete product:", err);
+      return false;
+    }
   };
 
   /* =====================
-     TOGGLE ACTIVE ✅ FIX ERROR
+     TOGGLE ACTIVE
   ===================== */
   const toggleActive = async (product: Product) => {
-    const res = await fetch(`/api/products/${product.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: product.name,
-        description: product.description ?? "",
-        price: product.price,
-        stock: String(product.stock),
-        duration: String(product.duration),
-        category: product.category,
-        isActive: !product.isActive,
-      }),
-    });
+    try {
+      const result = await api.patch<{ success: boolean; data: Product }>(
+        `/api/admin/products/${product.id}`,
+        { isActive: !product.isActive },
+      );
 
-    if (!res.ok) return false;
-
-    await fetchProducts();
-    return true;
+      if (result.success) {
+        await fetchProducts();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Failed to toggle product status:", err);
+      return false;
+    }
   };
 
   /* =====================
@@ -158,7 +174,6 @@ export function useProducts() {
       name: product.name,
       description: product.description || "",
       price: product.price,
-      stock: String(product.stock),
       duration: String(product.duration),
       category: product.category,
       isActive: product.isActive,
@@ -185,7 +200,7 @@ export function useProducts() {
     addProduct,
     updateProduct,
     deleteProduct,
-    toggleActive, // ✅ FIXED
+    toggleActive,
     setEditProduct,
     resetForm,
   };

@@ -1,3 +1,4 @@
+// app/(public)/order/success/SuccessClient.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -9,9 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Home, MessageCircle } from "lucide-react";
 
+const ADMIN_PHONE = "6281234567890"; // ← GANTI NOMOR WA ADMIN LU!
+
 export default function SuccessClient() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("orderNumber");
+  const customerName = searchParams.get("customerName");
+  const totalPrice = searchParams.get("totalPrice");
+  const paymentMethod = searchParams.get("paymentMethod");
 
   // 🎉 CONFETTI
   useEffect(() => {
@@ -31,10 +37,40 @@ export default function SuccessClient() {
     return () => clearInterval(interval);
   }, []);
 
-  const ADMIN_PHONE = "6281234567890";
-  const waLink = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(
-    `Halo Admin 👋\n\nOrder Number: ${orderNumber}`
-  )}`;
+  // Format payment method
+  const formatPaymentMethod = (method: string | null) => {
+    if (!method) return "N/A";
+    const methods: Record<string, string> = {
+      QRIS: "QRIS",
+      E_WALLET: "E-Wallet (GoPay/DANA/OVO)",
+      TRANSFER: "Transfer Bank",
+    };
+    return methods[method] || method;
+  };
+
+  // Format currency
+  const formatCurrency = (value: string | null) => {
+    if (!value) return "Rp 0";
+    const num = parseFloat(value);
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(num);
+  };
+
+  // WhatsApp message dengan NAMA, bukan order number
+  const waMessage = `Halo Admin 👋
+
+Saya *${customerName || "Customer"}* sudah melakukan pembayaran untuk pesanan cuci sepatu:
+
+💰 Total Pembayaran: *${formatCurrency(totalPrice)}*
+💳 Metode Pembayaran: *${formatPaymentMethod(paymentMethod)}*
+📋 Order Number: ${orderNumber || "-"}
+
+Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima kasih! 🙏`;
+
+  const waLink = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -55,13 +91,16 @@ export default function SuccessClient() {
             <CheckCircle2 className="h-10 w-10 text-green-600" />
           </div>
 
-          <h1 className="text-3xl font-bold">Pesanan Berhasil 🎉</h1>
-          <p className="text-gray-600 mt-2">
-            Terima kasih telah memesan layanan kami
+          <h1 className="text-3xl font-bold mb-2">
+            Pesanan Berhasil Dibuat! 🎉
+          </h1>
+          <p className="text-gray-600">
+            Terima kasih <span className="font-semibold">{customerName}</span>,
+            pesanan Anda sudah kami terima
           </p>
         </motion.div>
 
-        {/* ORDER NUMBER */}
+        {/* ORDER DETAILS */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,20 +108,50 @@ export default function SuccessClient() {
         >
           <Card className="mb-6 shadow-lg border-2">
             <CardHeader>
-              <CardTitle>Order Number</CardTitle>
+              <CardTitle>Detail Pesanan</CardTitle>
             </CardHeader>
-            <CardContent>
-              <motion.p
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200 }}
-                className="text-3xl font-bold text-blue-600 break-all"
-              >
-                {orderNumber ?? "-"}
-              </motion.p>
-              <p className="text-sm text-gray-600 mt-2">
-                Simpan nomor ini untuk konfirmasi
-              </p>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-gray-600">Order Number</span>
+                <span className="font-mono font-bold text-blue-600">
+                  {orderNumber || "-"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-gray-600">Total Pembayaran</span>
+                <span className="text-xl font-bold text-green-600">
+                  {formatCurrency(totalPrice)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">Metode Pembayaran</span>
+                <span className="font-semibold">
+                  {formatPaymentMethod(paymentMethod)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* NEXT STEPS */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-6"
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+            <CardContent className="pt-6">
+              <h3 className="font-bold text-lg mb-3">
+                📱 Langkah Selanjutnya:
+              </h3>
+              <ol className="text-left text-sm space-y-2 list-decimal list-inside text-gray-700">
+                <li>Lakukan pembayaran sesuai metode yang dipilih</li>
+                <li>Screenshot/foto bukti pembayaran Anda</li>
+                <li>Klik tombol "Kirim Bukti Bayar" di bawah</li>
+                <li>Upload bukti pembayaran di chat WhatsApp</li>
+                <li>Tunggu konfirmasi dari admin kami</li>
+              </ol>
             </CardContent>
           </Card>
         </motion.div>
@@ -94,19 +163,31 @@ export default function SuccessClient() {
           transition={{ delay: 0.5 }}
           className="space-y-4"
         >
-          <Button asChild className="w-full">
+          <Button asChild className="w-full h-12 text-base" size="lg">
             <a href={waLink} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-5 w-5" />
-              Konfirmasi via WhatsApp
+              Kirim Bukti Bayar via WhatsApp
             </a>
           </Button>
 
           <Link href="/">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full h-12">
               <Home className="mr-2 h-5 w-5" />
               Kembali ke Home
             </Button>
           </Link>
+        </motion.div>
+
+        {/* INFO */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-8"
+        >
+          <p className="text-xs text-gray-500">
+            💡 Pesanan akan diproses setelah pembayaran dikonfirmasi oleh admin
+          </p>
         </motion.div>
       </motion.div>
     </div>

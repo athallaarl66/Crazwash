@@ -1,13 +1,8 @@
+// app/admin/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Calendar,
-  DollarSign,
-  ShoppingCart,
-  Users,
-  Package,
-} from "lucide-react";
+import { Calendar, Wallet, ShoppingBag, Users, TrendingUp } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -20,15 +15,35 @@ import StatCard from "./components/StatsCard";
 import RevenueChart from "./components/RevenueChart";
 import OrderStatusChart from "./components/OrderStatusChart";
 import TopProducts from "./components/TopProductsTable";
+import RevenueBreakdown from "./components/Revenuebreakdown";
+import CustomerStats from "./components/Customerstats";
+import CategoryBreakdown from "./components/Categorybreakdown";
 import SectionHeader from "./components/SectionHeader";
 
 interface DashboardData {
   kpis: {
     totalRevenue: { value: number; growth: number };
     totalOrders: { value: number; growth: number };
+    totalShoesCleaned: { value: number };
     activeCustomers: { value: number };
     averageOrderValue: { value: number };
   };
+  revenueBreakdown: {
+    status: string;
+    amount: number;
+    count: number;
+  }[];
+  customerStats: {
+    total: number;
+    new: number;
+    returning: number;
+    active: number;
+  };
+  categoryBreakdown: {
+    category: string;
+    revenue: number;
+    orderCount: number;
+  }[];
   charts: {
     revenueTrends: { month: string; revenue: number }[];
     statusDistribution: { status: string; count: number }[];
@@ -36,7 +51,8 @@ interface DashboardData {
   topProducts: {
     name: string;
     category: string;
-    quantity: number;
+    orderCount: number;
+    totalShoes: number;
     revenue: number;
   }[];
 }
@@ -75,12 +91,12 @@ export default function DashboardPage() {
   if (!data) return <div className="p-8">Data kosong</div>;
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="p-8 space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard – Cuci Sepatu</h1>
-          <p className="text-gray-500">Analisis Bisnis</p>
+          <h1 className="text-3xl font-bold">Dashboard Admin</h1>
+          <p className="text-gray-500">Analisis Bisnis Cuci Sepatu</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -101,33 +117,43 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Penjualan"
           value={formatCurrency(data.kpis.totalRevenue.value)}
+          subtitle={`${data.kpis.totalOrders.value} order • ${data.kpis.totalShoesCleaned.value} sepatu dicuci`}
           growth={data.kpis.totalRevenue.growth}
-          icon={<DollarSign className="h-4 w-4" />}
+          icon={<Wallet className="h-4 w-4" />}
+          variant="success"
         />
         <StatCard
           title="Total Pesanan"
           value={data.kpis.totalOrders.value}
+          subtitle={`Rata-rata ${(
+            data.kpis.totalShoesCleaned.value / data.kpis.totalOrders.value || 0
+          ).toFixed(1)} sepatu/order`}
           growth={data.kpis.totalOrders.growth}
-          icon={<ShoppingCart className="h-4 w-4" />}
+          icon={<ShoppingBag className="h-4 w-4" />}
+          variant="info"
         />
         <StatCard
           title="Pelanggan Aktif"
           value={data.kpis.activeCustomers.value}
+          subtitle={`dari ${data.customerStats.total} total pelanggan`}
           icon={<Users className="h-4 w-4" />}
+          variant="default"
         />
         <StatCard
           title="Rata-rata Pesanan"
           value={formatCurrency(data.kpis.averageOrderValue.value)}
-          icon={<Package className="h-4 w-4" />}
+          subtitle={`Per ${data.kpis.totalOrders.value} order`}
+          icon={<TrendingUp className="h-4 w-4" />}
+          variant="warning"
         />
       </div>
 
-      {/* CHARTS */}
+      {/* REVENUE & STATUS CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart
           data={data.charts.revenueTrends}
@@ -136,9 +162,25 @@ export default function DashboardPage() {
         <OrderStatusChart data={data.charts.statusDistribution} />
       </div>
 
+      {/* REVENUE BREAKDOWN & CUSTOMER STATS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RevenueBreakdown
+          data={data.revenueBreakdown}
+          formatCurrency={formatCurrency}
+        />
+        <CustomerStats data={data.customerStats} />
+      </div>
+
       {/* TOP PRODUCTS */}
       <SectionHeader title="Layanan Terlaris" />
       <TopProducts data={data.topProducts} />
+
+      {/* CATEGORY BREAKDOWN */}
+      <SectionHeader title="Breakdown per Kategori" />
+      <CategoryBreakdown
+        data={data.categoryBreakdown}
+        formatCurrency={formatCurrency}
+      />
     </div>
   );
 }

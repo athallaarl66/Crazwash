@@ -1,17 +1,27 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-// DEMO MODE - Set to false for production with auth
-const DEMO_MODE = process.env.DEMO_MODE === "true";
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-export function middleware(req: NextRequest) {
-  // If demo mode, allow all access
-  if (DEMO_MODE) {
-    return NextResponse.next();
+  if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
   }
 
-  // TODO: Add proper auth check here when ready for production
-  // For now, just allow access
+  if (pathname.startsWith("/auth/login")) {
+    if (token) {
+      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    }
+  }
+
   return NextResponse.next();
 }
 

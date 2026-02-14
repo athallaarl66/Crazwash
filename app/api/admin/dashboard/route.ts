@@ -1,43 +1,71 @@
+// app/api/dashboard/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 
+/* ================== GET ================== */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
+
     const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } =
       getDateRanges(range);
 
-    // 1. KPI
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    /* ================= KPI ================= */
     const currentAgg = await prisma.order.aggregate({
       _sum: { totalPrice: true },
       _count: true,
-      where: { createdAt: { gte: currentPeriodStart }, paymentStatus: "PAID" },
+      where: {
+        createdAt: { gte: currentPeriodStart },
+        paymentStatus: "PAID",
+      },
     });
+
     const previousAgg = await prisma.order.aggregate({
       _sum: { totalPrice: true },
       _count: true,
       where: {
-        createdAt: { gte: previousPeriodStart, lte: previousPeriodEnd },
+        createdAt: {
+          gte: previousPeriodStart,
+          lte: previousPeriodEnd,
+        },
         paymentStatus: "PAID",
       },
     });
 
     const totalRevenue = Number(currentAgg._sum.totalPrice) || 0;
-    const totalOrders = currentAgg._count;
-    const lastPeriodRevenue = Number(previousAgg._sum.totalPrice) || 0;
-    const lastPeriodOrders = previousAgg._count;
+    const totalOrders = currentAgg._count || 0;
+    const lastRevenue = Number(previousAgg._sum.totalPrice) || 0;
+    const lastOrders = previousAgg._count || 0;
+
     const revenueGrowth =
-      lastPeriodRevenue > 0
-        ? ((totalRevenue - lastPeriodRevenue) / lastPeriodRevenue) * 100
-        : 0;
+      lastRevenue > 0 ? ((totalRevenue - lastRevenue) / lastRevenue) * 100 : 0;
+
     const ordersGrowth =
-      lastPeriodOrders > 0
-        ? ((totalOrders - lastPeriodOrders) / lastPeriodOrders) * 100
-        : 0;
+      lastOrders > 0 ? ((totalOrders - lastOrders) / lastOrders) * 100 : 0;
+
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // 2. Active Customers
+    /* ============ TOTAL SHOES COUNT ============ */
+    const shoesAgg = await prisma.orderService.aggregate({
+      _sum: { shoesQty: true },
+      where: {
+        order: {
+          createdAt: { gte: currentPeriodStart },
+          paymentStatus: "PAID",
+        },
+      },
+    });
+
+    const totalShoesCleaned = shoesAgg._sum.shoesQty || 0;
+
+    /* ============ ACTIVE CUSTOMERS ============ */
     const activeCustomers = await prisma.order.groupBy({
       by: ["customerPhone"],
       where: {
@@ -46,188 +74,353 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 3. Revenue Trends
-    const revenueTrends = await getRevenueTrends(currentPeriodStart);
-
-    // 4. Order Status
-    const ordersByStatus = await prisma.order.groupBy({
-      by: ["status"],
-      _count: true,
-      where: { createdAt: { gte: currentPeriodStart } },
+    /* ================= ALERTS ================= */
+    const pendingCount = await prisma.order.count({
+      where: { status: "PENDING" },
     });
-    const statusDistribution = ordersByStatus.map((s) => ({
-      status: s.status,
-      count: s._count,
-    }));
 
-    // 5. Payment Breakdown
-    const ordersByPayment = await prisma.order.groupBy({
+    const unpaidWithProofCount = await prisma.order.count({
+      where: {
+        paymentStatus: "UNPAID",
+        paymentProof: { not: null },
+      },
+    });
+
+    const readyCount = await prisma.order.count({
+      where: { status: "READY" },
+    });
+
+    const pickupTodayCount = await prisma.order.count({
+      where: {
+        pickupDate: { gte: today, lt: tomorrow },
+        status: "CONFIRMED",
+      },
+    });
+
+    /* ================= TODAY'S ACTIVITY ================= */
+    const newOrdersToday = await prisma.order.count({
+      where: {
+        createdAt: { gte: today },
+      },
+    });
+
+    const inProgressOrders = await prisma.order.findMany({
+      where: { status: "IN_PROGRESS" },
+      include: {
+        services: {
+          select: { shoesQty: true },
+        },
+      },
+    });
+
+    const inProgressCount = inProgressOrders.length;
+    const inProgressShoes = inProgressOrders.reduce(
+      (sum, order) =>
+        sum + order.services.reduce((s, svc) => s + svc.shoesQty, 0),
+      0,
+    );
+
+    const completedToday = await prisma.order.count({
+      where: {
+        completedDate: { gte: today },
+        status: "COMPLETED",
+      },
+    });
+
+    /* ================= REVENUE BREAKDOWN ================= */
+    const revenueByPaymentStatus = await prisma.order.groupBy({
       by: ["paymentStatus"],
       _sum: { totalPrice: true },
       _count: true,
       where: { createdAt: { gte: currentPeriodStart } },
     });
-    const paymentBreakdown = ordersByPayment.map((p) => ({
-      status: p.paymentStatus,
-      amount: Number(p._sum.totalPrice) || 0,
-      count: p._count,
+
+    const revenueBreakdown = revenueByPaymentStatus.map((item) => ({
+      status: item.paymentStatus,
+      amount: Number(item._sum.totalPrice) || 0,
+      count: item._count,
     }));
 
-    // 6. Category Performance
-    const categoryPerformance = await getCategoryPerformance(
-      currentPeriodStart
-    );
+    /* ================= CUSTOMER STATS ================= */
+    const allCustomers = await prisma.order.groupBy({
+      by: ["customerPhone"],
+      _count: true,
+      where: { createdAt: { gte: currentPeriodStart } },
+    });
 
-    // 7. Top Products
+    const newCustomers = allCustomers.filter((c) => c._count === 1).length;
+    const returningCustomers = allCustomers.filter((c) => c._count > 1).length;
+
+    /* ================= CATEGORY BREAKDOWN ================= */
+    const categoryBreakdown = await getCategoryBreakdown(currentPeriodStart);
+
+    /* ================= CHARTS ================= */
+    const revenueTrends = await getRevenueTrends(currentPeriodStart);
+
+    const statusRaw = await prisma.order.groupBy({
+      by: ["status"],
+      _count: true,
+      where: { createdAt: { gte: currentPeriodStart } },
+    });
+
+    const statusDistribution = statusRaw.map((s) => ({
+      status: s.status,
+      count: s._count,
+    }));
+
+    /* ================= TOP PRODUCTS ================= */
     const topProducts = await getTopProducts(currentPeriodStart);
 
-    // 8. Recent Orders
-    const recentOrders = await prisma.order.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      include: { items: { include: { product: true } } },
-    });
-
-    // 9. Alerts
-    const [pendingOrders, unpaidOrders, pendingVerification] =
-      await Promise.all([
-        prisma.order.count({ where: { status: "PENDING" } }),
-        prisma.order.count({
-          where: { status: { not: "CANCELLED" }, paymentStatus: "UNPAID" },
-        }),
-        prisma.order.count({
-          where: { paymentStatus: "UNPAID", paymentProof: { not: null } },
-        }),
-      ]);
-    const lowStockProducts = await prisma.product.count({
-      where: { isActive: true, stock: { lte: 10 } },
-    });
-
+    /* ================= RESPONSE ================= */
     return NextResponse.json({
       kpis: {
         totalRevenue: {
           value: totalRevenue,
           growth: revenueGrowth,
-          lastMonth: lastPeriodRevenue,
         },
         totalOrders: {
           value: totalOrders,
           growth: ordersGrowth,
-          lastMonth: lastPeriodOrders,
         },
-        activeCustomers: { value: activeCustomers.length },
-        averageOrderValue: { value: averageOrderValue },
+        totalShoesCleaned: {
+          value: totalShoesCleaned,
+        },
+        activeCustomers: {
+          value: activeCustomers.length,
+        },
+        averageOrderValue: {
+          value: averageOrderValue,
+        },
       },
+      alerts: {
+        pending: pendingCount,
+        unpaidWithProof: unpaidWithProofCount,
+        ready: readyCount,
+        pickupToday: pickupTodayCount,
+      },
+      todayActivity: {
+        newOrders: newOrdersToday,
+        inProgress: {
+          orders: inProgressCount,
+          shoes: inProgressShoes,
+        },
+        completed: completedToday,
+        needPickup: pickupTodayCount,
+      },
+      revenueBreakdown,
+      customerStats: {
+        total: allCustomers.length,
+        new: newCustomers,
+        returning: returningCustomers,
+        active: activeCustomers.length,
+      },
+      categoryBreakdown,
       charts: {
         revenueTrends,
         statusDistribution,
-        paymentBreakdown,
-        categoryPerformance,
       },
       topProducts,
-      recentOrders: recentOrders.map((o) => ({
-        id: o.id,
-        orderNumber: o.orderNumber,
-        customerName: o.customerName,
-        totalPrice: Number(o.totalPrice),
-        status: o.status,
-        createdAt: o.createdAt,
-      })),
-      alerts: {
-        pendingOrders,
-        unpaidOrders,
-        pendingVerification,
-        lowStockProducts,
-      },
-      metrics: {
-        avgProcessingTime: "2", // placeholder, bisa dihitung dari order logic
-        cancellationRate: 5,
-        completionRate: "95",
-      },
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Dashboard error" }, { status: 500 });
+  } catch (err) {
+    console.error("Dashboard API error:", err);
+
+    return NextResponse.json({
+      kpis: {
+        totalRevenue: { value: 0, growth: 0 },
+        totalOrders: { value: 0, growth: 0 },
+        totalShoesCleaned: { value: 0 },
+        activeCustomers: { value: 0 },
+        averageOrderValue: { value: 0 },
+      },
+      alerts: {
+        pending: 0,
+        unpaidWithProof: 0,
+        ready: 0,
+        pickupToday: 0,
+      },
+      todayActivity: {
+        newOrders: 0,
+        inProgress: { orders: 0, shoes: 0 },
+        completed: 0,
+        needPickup: 0,
+      },
+      revenueBreakdown: [],
+      customerStats: {
+        total: 0,
+        new: 0,
+        returning: 0,
+        active: 0,
+      },
+      categoryBreakdown: [],
+      charts: {
+        revenueTrends: [],
+        statusDistribution: [],
+      },
+      topProducts: [],
+    });
   }
 }
 
-/* ================= HELPERS ================= */
+/* ================== HELPERS ================== */
+
 function getDateRanges(range: string) {
   const now = new Date();
-  const daysMap: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
-  const days = daysMap[range];
-  if (days)
-    return {
-      currentPeriodStart: new Date(now.getTime() - days * 86400000),
-      previousPeriodStart: new Date(now.getTime() - days * 2 * 86400000),
-      previousPeriodEnd: new Date(now.getTime() - days * 86400000),
-    };
+
+  switch (range) {
+    case "7d":
+      return rangeDays(now, 7);
+    case "30d":
+      return rangeDays(now, 30);
+    case "90d":
+      return rangeDays(now, 90);
+    case "6m":
+      return rangeDays(now, 180);
+    case "1y":
+      return rangeDays(now, 365);
+    default:
+      return {
+        currentPeriodStart: new Date(0),
+        previousPeriodStart: new Date(0),
+        previousPeriodEnd: new Date(0),
+      };
+  }
+}
+
+function rangeDays(now: Date, days: number) {
   return {
-    currentPeriodStart: new Date(0),
-    previousPeriodStart: new Date(0),
-    previousPeriodEnd: new Date(0),
+    currentPeriodStart: new Date(now.getTime() - days * 86400000),
+    previousPeriodStart: new Date(now.getTime() - days * 2 * 86400000),
+    previousPeriodEnd: new Date(now.getTime() - days * 86400000),
   };
 }
 
+/* ================== REVENUE TRENDS ================== */
 async function getRevenueTrends(startDate: Date) {
   const orders = await prisma.order.findMany({
-    where: { createdAt: { gte: startDate }, paymentStatus: "PAID" },
+    where: {
+      createdAt: { gte: startDate },
+      paymentStatus: "PAID",
+    },
     orderBy: { createdAt: "asc" },
   });
+
   const map = new Map<string, number>();
+
   orders.forEach((o) => {
     const key = o.createdAt.toLocaleDateString("id-ID", {
-      month: "short",
       day: "numeric",
+      month: "short",
     });
+
     map.set(key, (map.get(key) ?? 0) + Number(o.totalPrice));
   });
+
   return Array.from(map.entries()).map(([month, revenue]) => ({
     month,
     revenue,
   }));
 }
 
-async function getCategoryPerformance(startDate: Date) {
-  const items = await prisma.orderItem.findMany({
-    where: { order: { createdAt: { gte: startDate }, paymentStatus: "PAID" } },
-    include: { product: true },
-  });
-  const map = new Map<string, number>();
-  items.forEach((i) => {
-    map.set(
-      i.product.category,
-      (map.get(i.product.category) ?? 0) + Number(i.unitPrice) * i.quantity
-    );
-  });
-  return Array.from(map.entries()).map(([category, revenue]) => ({
-    category,
-    revenue,
-  }));
-}
-
+/* ================== TOP PRODUCTS ================== */
 async function getTopProducts(startDate: Date) {
-  const items = await prisma.orderItem.findMany({
-    where: { order: { createdAt: { gte: startDate }, paymentStatus: "PAID" } },
-    include: { product: true },
+  const services = await prisma.orderService.findMany({
+    where: {
+      order: {
+        createdAt: { gte: startDate },
+        paymentStatus: "PAID",
+      },
+    },
+    include: {
+      product: true,
+      order: true,
+    },
   });
+
   const map = new Map<
     number,
-    { name: string; category: string; revenue: number; quantity: number }
+    {
+      name: string;
+      category: string;
+      revenue: number;
+      totalShoes: number;
+      orderCount: number;
+      orderIds: Set<number>;
+    }
   >();
-  items.forEach((i) => {
-    if (!map.has(i.productId))
-      map.set(i.productId, {
-        name: i.product.name,
-        category: i.product.category,
+
+  services.forEach((s) => {
+    if (!map.has(s.productId)) {
+      map.set(s.productId, {
+        name: s.product.name,
+        category: s.product.category,
         revenue: 0,
-        quantity: 0,
+        totalShoes: 0,
+        orderCount: 0,
+        orderIds: new Set(),
       });
-    const p = map.get(i.productId)!;
-    p.revenue += Number(i.unitPrice) * i.quantity;
-    p.quantity += i.quantity;
+    }
+
+    const p = map.get(s.productId)!;
+    p.revenue += Number(s.subtotal);
+    p.totalShoes += s.shoesQty;
+    p.orderIds.add(s.orderId);
   });
+
   return Array.from(map.values())
+    .map(({ orderIds, ...rest }) => ({
+      ...rest,
+      orderCount: orderIds.size,
+    }))
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
+}
+
+/* ================== CATEGORY BREAKDOWN ================== */
+async function getCategoryBreakdown(startDate: Date) {
+  const services = await prisma.orderService.findMany({
+    where: {
+      order: {
+        createdAt: { gte: startDate },
+        paymentStatus: "PAID",
+      },
+    },
+    include: {
+      product: true,
+      order: true,
+    },
+  });
+
+  const map = new Map<
+    string,
+    {
+      category: string;
+      revenue: number;
+      orderCount: number;
+      orderIds: Set<number>;
+    }
+  >();
+
+  services.forEach((s) => {
+    const category = s.product.category;
+
+    if (!map.has(category)) {
+      map.set(category, {
+        category,
+        revenue: 0,
+        orderCount: 0,
+        orderIds: new Set(),
+      });
+    }
+
+    const cat = map.get(category)!;
+    cat.revenue += Number(s.subtotal);
+    cat.orderIds.add(s.orderId);
+  });
+
+  return Array.from(map.values())
+    .map(({ orderIds, ...rest }) => ({
+      ...rest,
+      orderCount: orderIds.size,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
 }

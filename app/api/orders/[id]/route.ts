@@ -1,12 +1,13 @@
 // app/api/orders/[id]/route.ts
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await context.params;
+  const { id } = await params;
   const orderId = Number(id);
 
   if (isNaN(orderId)) {
@@ -14,38 +15,18 @@ export async function PATCH(
   }
 
   try {
-    const { action } = await request.json();
+    const { action } = await req.json();
 
     // =====================
     // MARK AS PAID
     // =====================
     if (action === "PAID") {
-      await prisma.$transaction(async (tx) => {
-        const order = await tx.order.findUnique({
-          where: { id: orderId },
-          include: { items: true },
-        });
-
-        if (!order) throw new Error("Order not found");
-        if (order.paymentStatus === "PAID") return;
-
-        for (const item of order.items) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-        }
-
-        await tx.order.update({
-          where: { id: orderId },
-          data: {
-            paymentStatus: "PAID",
-          },
-        });
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: PaymentStatus.PAID,
+          status: OrderStatus.CONFIRMED,
+        },
       });
     }
 
@@ -53,42 +34,20 @@ export async function PATCH(
     // CANCEL ORDER
     // =====================
     if (action === "CANCELLED") {
-      await prisma.$transaction(async (tx) => {
-        const order = await tx.order.findUnique({
-          where: { id: orderId },
-          include: { items: true },
-        });
-
-        if (!order) throw new Error("Order not found");
-
-        if (order.paymentStatus === "PAID") {
-          for (const item of order.items) {
-            await tx.product.update({
-              where: { id: item.productId },
-              data: {
-                stock: {
-                  increment: item.quantity,
-                },
-              },
-            });
-          }
-        }
-
-        await tx.order.update({
-          where: { id: orderId },
-          data: {
-            status: "CANCELLED",
-          },
-        });
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.CANCELLED,
+        },
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(error);
+    console.error("Update order error:", error);
     return NextResponse.json(
       { error: "Failed to update order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

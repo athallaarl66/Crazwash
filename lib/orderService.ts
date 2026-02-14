@@ -1,11 +1,19 @@
 // lib/orderService.ts
 import { prisma } from "./prisma";
 import { generateOrderNumber } from "./utils";
-import { Order, OrderItem, Product, User, OrderStatus } from "@prisma/client";
+import {
+  Order,
+  Product,
+  User,
+  OrderStatus,
+  OrderService,
+  PaymentStatus,
+} from "@prisma/client";
 
 /* =======================
    TYPES
 ======================= */
+
 export interface CreateOrderInput {
   customerName: string;
   customerPhone: string;
@@ -14,61 +22,68 @@ export interface CreateOrderInput {
   city?: string;
   pickupDate?: Date;
   notes?: string;
-  items: {
-    productId: number;
-    quantity: number;
+  services: {
+    serviceId: number;
+    shoesQty: number;
   }[];
 }
 
-export type SerializedProduct = Omit<Product, "price"> & {
+export type SerializedService = Omit<Product, "price"> & {
   price: number;
 };
 
-export type SerializedOrderItem = Omit<OrderItem, "unitPrice" | "subtotal"> & {
+export type SerializedOrderService = Omit<
+  OrderService,
+  "unitPrice" | "subtotal"
+> & {
   unitPrice: number;
   subtotal: number;
-  product: SerializedProduct;
+  product: SerializedService;
 };
 
-export type OrderWithItems = Omit<Order, "totalPrice"> & {
+export type OrderWithServices = Omit<Order, "totalPrice"> & {
   totalPrice: number;
   customer?: User | null;
-  items: SerializedOrderItem[];
+  services: SerializedOrderService[];
 };
 
 /* =======================
    CREATE ORDER
 ======================= */
+
 export async function createOrder(
-  input: CreateOrderInput
-): Promise<OrderWithItems> {
-  // 1. Get products untuk calculate price
-  const productIds = input.items.map((item) => item.productId);
+  input: CreateOrderInput,
+): Promise<OrderWithServices> {
+  const productIds = input.services.map((s) => s.serviceId);
+
   const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
+    where: {
+      id: { in: productIds },
+      isActive: true,
+      deletedAt: null,
+    },
   });
 
-  // 2. Calculate total & prepare order items
   let totalPrice = 0;
-  const orderItemsData = input.items.map((item) => {
-    const product = products.find((p) => p.id === item.productId);
+
+  const orderServicesData = input.services.map((item) => {
+    const product = products.find((p) => p.id === item.serviceId);
     if (!product) {
-      throw new Error(`Product ${item.productId} not found`);
+      throw new Error(`Service ${item.serviceId} not found`);
     }
 
     const unitPrice = Number(product.price);
-    const subtotal = unitPrice * item.quantity;
+    const subtotal = unitPrice * item.shoesQty;
     totalPrice += subtotal;
 
     return {
-      productId: item.productId,
-      quantity: item.quantity,
-      unitPrice: unitPrice,
-      subtotal: subtotal,
+      productId: product.id,
+      shoesQty: item.shoesQty,
+      unitPrice,
+      subtotal,
     };
   });
 
-  // 3. Create order with items
   const order = await prisma.order.create({
     data: {
       orderNumber: generateOrderNumber(),
@@ -79,15 +94,16 @@ export async function createOrder(
       city: input.city || "Bandung",
       pickupDate: input.pickupDate,
       notes: input.notes,
-      totalPrice: totalPrice,
+      totalPrice,
       status: "PENDING",
       paymentStatus: "UNPAID",
-      items: {
-        create: orderItemsData,
+      services: {
+        create: orderServicesData,
       },
     },
     include: {
-      items: {
+      customer: true,
+      services: {
         include: {
           product: true,
         },
@@ -95,156 +111,139 @@ export async function createOrder(
     },
   });
 
-  // 4. Serialize Decimal fields
+  return serializeOrder(order);
+}
+
+/* =======================
+   SERIALIZER
+======================= */
+
+function serializeOrder(order: any): OrderWithServices {
   return {
     ...order,
     totalPrice: Number(order.totalPrice),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      subtotal: Number(item.subtotal),
+    services: order.services.map((s: any) => ({
+      ...s,
+      unitPrice: Number(s.unitPrice),
+      subtotal: Number(s.subtotal),
       product: {
-        ...item.product,
-        price: Number(item.product.price),
+        ...s.product,
+        price: Number(s.product.price),
       },
     })),
   };
+}
+
+/* =======================
+   GET ORDER BY ID
+======================= */
+
+export async function getOrderById(
+  id: number,
+): Promise<OrderWithServices | null> {
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      customer: true,
+      services: {
+        include: { product: true },
+      },
+    },
+  });
+
+  if (!order) return null;
+  return serializeOrder(order);
 }
 
 /* =======================
    GET ORDER BY NUMBER
 ======================= */
+
 export async function getOrderByNumber(
   orderNumber: string,
-  phone: string
-): Promise<OrderWithItems | null> {
-  const order = await prisma.order.findFirst({
-    where: {
-      orderNumber: orderNumber,
-      customerPhone: phone,
-    },
-    include: {
-      customer: true,
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  });
-
-  if (!order) return null;
-
-  return {
-    ...order,
-    totalPrice: Number(order.totalPrice),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      subtotal: Number(item.subtotal),
-      product: {
-        ...item.product,
-        price: Number(item.product.price),
-      },
-    })),
-  };
-}
-
-/* =======================
-   GET ALL ORDERS (for admin)
-======================= */
-export async function getAllOrders(): Promise<OrderWithItems[]> {
-  const orders = await prisma.order.findMany({
-    include: {
-      customer: true,
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return orders.map((order) => ({
-    ...order,
-    totalPrice: Number(order.totalPrice),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      subtotal: Number(item.subtotal),
-      product: {
-        ...item.product,
-        price: Number(item.product.price),
-      },
-    })),
-  }));
-}
-
-/* =======================
-   GET ORDER BY ID (for admin)
-======================= */
-export async function getOrderById(id: number): Promise<OrderWithItems | null> {
+): Promise<OrderWithServices | null> {
   const order = await prisma.order.findUnique({
-    where: { id },
+    where: { orderNumber },
     include: {
       customer: true,
-      items: {
-        include: {
-          product: true,
-        },
+      services: {
+        include: { product: true },
       },
     },
   });
 
   if (!order) return null;
-
-  return {
-    ...order,
-    totalPrice: Number(order.totalPrice),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      subtotal: Number(item.subtotal),
-      product: {
-        ...item.product,
-        price: Number(item.product.price),
-      },
-    })),
-  };
+  return serializeOrder(order);
 }
 
 /* =======================
-   UPDATE ORDER STATUS
+   ADMIN QUERIES
 ======================= */
-export async function updateOrderStatus(
-  orderId: number,
-  status: OrderStatus // ← Gunakan enum dari Prisma
-): Promise<OrderWithItems> {
-  const order = await prisma.order.update({
+
+type GetAllOrdersParams = {
+  search?: string;
+  paymentStatus?: PaymentStatus;
+  status?: OrderStatus;
+  page?: number;
+  limit?: number;
+};
+
+export async function updateOrderStatus(orderId: number, status: OrderStatus) {
+  return prisma.order.update({
     where: { id: orderId },
     data: { status },
-    include: {
-      customer: true,
-      items: {
-        include: {
-          product: true,
+  });
+}
+
+export async function getAllOrders({
+  search,
+  paymentStatus,
+  status,
+  page = 1,
+  limit = 10,
+}: GetAllOrdersParams = {}) {
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      { orderNumber: { contains: search, mode: "insensitive" } },
+      { customerName: { contains: search, mode: "insensitive" } },
+      { customerPhone: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  // ✅ FIX: Validasi paymentStatus sesuai schema
+  if (paymentStatus) {
+    const validStatuses = ["UNPAID", "PAID", "REFUNDED"] as PaymentStatus[];
+    if (validStatuses.includes(paymentStatus)) {
+      where.paymentStatus = paymentStatus;
+    }
+  }
+
+  if (status) {
+    where.status = status;
+  }
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        customer: true,
+        services: {
+          include: { product: true },
         },
       },
-    },
-  });
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
 
   return {
-    ...order,
-    totalPrice: Number(order.totalPrice),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-      subtotal: Number(item.subtotal),
-      product: {
-        ...item.product,
-        price: Number(item.product.price),
-      },
-    })),
+    data: orders.map(serializeOrder),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
   };
 }

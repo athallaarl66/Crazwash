@@ -7,18 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//////////////////////////////////////////////////////
+// USER
+//////////////////////////////////////////////////////
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int    @id @default(autoincrement())
+  email     String @unique
   password  String
   name      String
-  role      Role     @default(CUSTOMER)
+  role      Role   @default(CUSTOMER)
+
   phone     String?
   address   String?
+  city      String? @default("Bandung")
+
+  isActive          Boolean   @default(true)
+  lastLogin         DateTime?
+  loginAttempts     Int       @default(0)
+  lockedUntil       DateTime?
+  passwordChangedAt DateTime  @default(now())
+
+  emailVerified DateTime?
+  image         String?
+
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   orders    Order[]
+  accounts  Account[]
+  sessions  Session[]
+  auditLogs AuditLog[]
 }
 
 enum Role {
@@ -26,28 +47,163 @@ enum Role {
   CUSTOMER
 }
 
-model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(10,2)
-  stock       Int      @default(0)
-  category    Category @default(BASIC)
-  duration    Int
-  isActive    Boolean  @default(true)
+//////////////////////////////////////////////////////
+// NEXTAUTH
+//////////////////////////////////////////////////////
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
-  orderItems  OrderItem[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
-enum Category {
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  ipAddress    String?
+  userAgent    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+//////////////////////////////////////////////////////
+// AUDIT LOG
+//////////////////////////////////////////////////////
+
+model AuditLog {
+  id        Int         @id @default(autoincrement())
+
+  userId    Int?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail String
+  userRole  Role
+
+  action    AuditAction
+  entity    String
+  entityId  String?
+
+  changes   Json?
+  metadata  Json?
+
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([timestamp])
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  PASSWORD_CHANGED
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  USER_RESTORED
+  ROLE_CHANGED
+
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  PRODUCT_RESTORED
+
+  ORDER_CREATED
+  ORDER_UPDATED
+  ORDER_STATUS_CHANGED
+  ORDER_CANCELLED
+  DATA_EXPORTED
+}
+
+//////////////////////////////////////////////////////
+// PRODUCT
+//////////////////////////////////////////////////////
+
+enum ProductCategory {
   BASIC
   PREMIUM
   DEEP
   TREATMENT
 }
+
+model Product {
+  id           Int       @id @default(autoincrement())
+  name         String
+  slug         String    @unique
+  description  String?
+
+  price        Decimal   @db.Decimal(10,2)
+  comparePrice Decimal?  @db.Decimal(10,2)
+
+  category     ProductCategory
+  duration     Int
+
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+
+  badge        String?
+  sortOrder    Int       @default(0)
+
+  thumbnail    String?
+
+  deletedAt    DateTime?
+  deletedBy    Int?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orderItems   OrderService[]
+  images       ProductImage[]
+
+  @@index([isActive])
+  @@index([category])
+  @@index([sortOrder])
+}
+
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  imageUrl  String
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+//////////////////////////////////////////////////////
+// ORDER
+//////////////////////////////////////////////////////
 
 model Order {
   id            Int           @id @default(autoincrement())
@@ -66,17 +222,27 @@ model Order {
   paymentStatus PaymentStatus @default(UNPAID)
 
   paymentProof  String?
+  paymentMethod String?
+
   pickupDate    DateTime?
   deliveryDate  DateTime?
+  completedDate DateTime?
 
   address       String
   city          String        @default("Bandung")
   notes         String?
+  adminNotes    String?
+
+  statusHistory Json[]        @default([])
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  items         OrderItem[]
+  services      OrderService[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([customerId])
 }
 
 enum OrderStatus {
@@ -92,18 +258,23 @@ enum OrderStatus {
 enum PaymentStatus {
   UNPAID
   PAID
+  REFUNDED
 }
 
-model OrderItem {
+//////////////////////////////////////////////////////
+// ORDER SERVICE
+//////////////////////////////////////////////////////
+
+model OrderService {
   id        Int      @id @default(autoincrement())
 
   orderId   Int
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   productId Int
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 
-  quantity  Int
+  shoesQty  Int
   unitPrice Decimal  @db.Decimal(10,2)
   subtotal  Decimal  @db.Decimal(10,2)
 

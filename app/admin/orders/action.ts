@@ -1,4 +1,4 @@
-// app/admin/orders/actions.ts
+// app/admin/orders/action.ts
 "use server";
 
 import { updateOrderStatus } from "@/lib/orderService";
@@ -7,11 +7,11 @@ import { revalidatePath } from "next/cache";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 /**
- * Update order status (PENDING, CONFIRMED, COMPLETED, CANCELLED)
+ * Update order status
  */
 export async function updateOrderStatusAction(
   orderId: number,
-  status: OrderStatus
+  status: OrderStatus,
 ) {
   try {
     await updateOrderStatus(orderId, status);
@@ -25,11 +25,11 @@ export async function updateOrderStatusAction(
 }
 
 /**
- * Update payment status (PAID / UNPAID)
+ * Update payment status
  */
 export async function updatePaymentStatusAction(
   orderId: number,
-  status: PaymentStatus
+  status: PaymentStatus,
 ) {
   try {
     await prisma.order.update({
@@ -65,4 +65,18 @@ export async function confirmOrderAction(orderId: number) {
  */
 export async function completeOrderAction(orderId: number) {
   return updateOrderStatusAction(orderId, "COMPLETED");
+}
+
+/**
+ * Mark order as paid
+ */
+export async function markAsPaidAction(orderId: number) {
+  return updatePaymentStatusAction(orderId, "PAID");
+}
+
+/**
+ * Mark order as unpaid
+ */
+export async function markAsUnpaidAction(orderId: number) {
+  return updatePaymentStatusAction(orderId, "UNPAID");
 }
