@@ -1,5 +1,6 @@
 // app/(admin)/orders/page.tsx
-// app/(admin)/orders/page.tsx
+
+import { Suspense } from "react";
 import OrdersClient from "@/app/admin/orders/components/OrdersClient";
 import { getAllOrders } from "@/lib/orderService";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
@@ -116,11 +117,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         </CardHeader>
 
         <CardContent className="pt-6">
-          <OrdersClient
-            orders={result.data}
-            page={result.page}
-            totalPages={result.totalPages}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <OrdersClient
+              orders={result.data}
+              page={result.page}
+              totalPages={result.totalPages}
+            />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
