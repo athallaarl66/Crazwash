@@ -128,12 +128,8 @@ export default function ProductsTable({
       )}
 
       <div className="rounded-lg border overflow-x-auto">
-        {" "}
-        {/* Mobile scroll */}
-        <table className="w-full text-sm">
+        <table className="w-full text-body-sm">
           <thead className="bg-muted">
-            {" "}
-            {/* Pakai bg-muted */}
             <tr>
               {setSelected && (
                 <th className="p-3">
@@ -147,8 +143,7 @@ export default function ProductsTable({
               )}
               <th className="text-left p-3 font-medium text-foreground">
                 Nama Layanan
-              </th>{" "}
-              {/* Pakai text-foreground */}
+              </th>
               <th className="text-left p-3 font-medium text-foreground">
                 Kategori
               </th>
@@ -176,16 +171,12 @@ export default function ProductsTable({
                   colSpan={setSelected ? 8 : 7}
                   className="p-8 text-center text-muted-foreground text-body"
                 >
-                  {" "}
-                  {/* Pakai text-muted-foreground, text-body */}
                   Tidak ada layanan
                 </td>
               </tr>
             ) : (
               products.map((product) => (
                 <tr key={product.id} className="border-t hover:bg-muted/50">
-                  {" "}
-                  {/* Pakai bg-muted/50 */}
                   {setSelected && (
                     <td className="p-3">
                       <Checkbox
@@ -202,16 +193,12 @@ export default function ProductsTable({
                     </div>
                     {product.description && (
                       <div className="text-caption text-muted-foreground truncate max-w-xs">
-                        {" "}
-                        {/* Pakai text-caption */}
                         {product.description}
                       </div>
                     )}
                   </td>
                   <td className="p-3">
                     <Badge variant="outline" className="border-border">
-                      {" "}
-                      {/* Pakai border-border */}
                       {CATEGORY_LABELS[product.category]}
                     </Badge>
                   </td>

@@ -126,16 +126,14 @@
   }
 }
 
-/* ================= CUSTOM UTILITIES ================= */
+/* ================= CUSTOM COMPONENTS ================= */
 
-@layer utilities {
-  /* Container */
+@layer components {
   .container-custom {
     @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
     max-width: 1280px;
   }
 
-  /* Card */
   .card-custom {
     @apply bg-card rounded-lg border border-border transition-all duration-200;
     box-shadow: var(--shadow-md);
@@ -183,7 +181,6 @@
     @apply text-xs leading-tight;
   }
 
-  /* Shadow utilities */
   .shadow-soft {
     box-shadow: var(--shadow-md);
   }

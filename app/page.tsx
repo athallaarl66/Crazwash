@@ -47,15 +47,9 @@ const services: ServiceCategory = {
 };
 
 const CATEGORY_CONFIG = {
-  shoes: {
-    title: "👟 Cleaning Treatment",
-  },
-  bags: {
-    title: "👜 Bag Cleaning",
-  },
-  special: {
-    title: "✨ Special Treatment",
-  },
+  shoes: { title: "👟 Cleaning Treatment" },
+  bags: { title: "👜 Bag Cleaning" },
+  special: { title: "✨ Special Treatment" },
 } as const;
 
 /* ================= PAGE ================= */
@@ -99,21 +93,30 @@ export default function LandingPage() {
           <Link href="/order">
             <Button
               size="lg"
-              className="bg-card text-card-foreground hover:bg-card/90 shadow-soft-lg rounded-full px-10 py-6 text-body font-semibold transition-all duration-300 hover:scale-105"
+              className="
+    bg-white
+    text-primary
+    hover:scale-105
+    transition
+    duration-200
+    shadow-xl
+    rounded-full
+    px-10
+  "
             >
               Pesan Sekarang
-              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
       </section>
 
-      {/* ================= PRICE LIST - COMPACT ================= */}
+      {/* ================= PRICE LIST ================= */}
       <section className="py-16 lg:py-20">
         <div className="container-custom mx-auto max-w-4xl">
           <h2 className="text-h2 mb-10 text-center">Price List</h2>
 
           <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* Shoes */}
             <div className="card-custom p-6">
               <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
                 {CATEGORY_CONFIG.shoes.title}
@@ -149,6 +152,7 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Bags */}
             <div className="card-custom p-6">
               <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
                 {CATEGORY_CONFIG.bags.title}
@@ -171,6 +175,7 @@ export default function LandingPage() {
             </div>
           </div>
 
+          {/* Special */}
           <div className="card-custom p-6">
             <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
               {CATEGORY_CONFIG.special.title}
@@ -210,10 +215,18 @@ export default function LandingPage() {
             <Link href="/services">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft-lg rounded-full px-10 py-6 text-body font-semibold transition-all duration-300"
+                className="
+    bg-primary
+    text-white
+    hover:scale-105
+    transition
+    duration-200
+    shadow-xl
+    rounded-full
+    px-10
+  "
               >
-                Lihat Semua Layanan
-                <ArrowRight className="ml-2 h-5 w-5" />
+                Lihat Layanan{" "}
               </Button>
             </Link>
           </div>
@@ -292,34 +305,33 @@ export default function LandingPage() {
             Kualitas premium, harga UMKM. Gratis pickup untuk area tertentu!
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/order">
-              <Button
-                size="lg"
-                variant="default"
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 hover:text-primary rounded-full px-10 py-6 text-body font-semibold backdrop-blur-sm transition-all duration-300 group"
-              >
-                <span className="flex items-center gap-2">
-                  Pesan Sekarang
-                  <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </span>
-              </Button>
-            </Link>
-          </div>
+          <Link href="/order">
+            <Button
+              size="lg"
+              className="
+    bg-white
+    text-primary
+    hover:scale-105
+    transition
+    duration-200
+    shadow-xl
+    rounded-full
+    px-10
+  "
+            >
+              Pesan Sekarang
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+          <ArrowRight className="ml-2 h-5 w-5" />
 
           <div className="mt-10 flex flex-wrap gap-6 justify-center text-body-sm opacity-90">
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              100% Aman
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Berpengalaman
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Hasil Maksimal
-            </span>
+            {["100% Aman", "Berpengalaman", "Hasil Maksimal"].map((text, i) => (
+              <span key={i} className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                {text}
+              </span>
+            ))}
           </div>
         </div>
       </section>
