@@ -16,7 +16,7 @@ import {
 import { Search, FilterX, Filter } from "lucide-react";
 
 const STATUS_OPTIONS = [
-  { value: undefined, label: "Semua Status" },
+  { value: "ALL", label: "Semua Status" }, // Ubah undefined ke "ALL" untuk menghindari error
   { value: "PENDING", label: "Menunggu" },
   { value: "CONFIRMED", label: "Dikonfirmasi" },
   { value: "READY", label: "Siap / Diantar" },
@@ -24,9 +24,8 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Dibatalkan" },
 ] as const;
 
-// ✅ FIX: Hanya status yang ada di schema
 const PAYMENT_OPTIONS = [
-  { value: undefined, label: "Semua Pembayaran" },
+  { value: "ALL", label: "Semua Pembayaran" }, // Ubah undefined ke "ALL" untuk konsistensi
   { value: "PAID", label: "Lunas" },
   { value: "UNPAID", label: "Belum Bayar" },
   { value: "REFUNDED", label: "Dikembalikan" },
@@ -41,9 +40,10 @@ export default function OrderFilters() {
 
   function updateParam(key: string, value?: string) {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete("page"); // reset pagination
+    params.delete("page");
 
-    if (!value) params.delete(key);
+    if (!value || value === "ALL")
+      params.delete(key); // Handle "ALL" sebagai clear
     else params.set(key, value);
 
     router.push(`/admin/orders?${params.toString()}`);
@@ -70,7 +70,6 @@ export default function OrderFilters() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
-        {/* SEARCH BAR */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
@@ -81,58 +80,44 @@ export default function OrderFilters() {
           />
         </div>
 
-        {/* FILTERS ROW */}
         <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
             <Filter className="h-4 w-4" />
             <span>Filter:</span>
           </div>
 
-          {/* PAYMENT FILTER */}
           <Select
             value={currentPayment || "ALL"}
-            onValueChange={(value) =>
-              updateParam("payment", value === "ALL" ? undefined : value)
-            }
+            onValueChange={(value) => updateParam("payment", value)}
           >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Pembayaran" />
             </SelectTrigger>
             <SelectContent>
               {PAYMENT_OPTIONS.map((option) => (
-                <SelectItem
-                  key={option.value || "ALL"}
-                  value={option.value || "ALL"}
-                >
+                <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          {/* STATUS FILTER */}
           <Select
             value={currentStatus || "ALL"}
-            onValueChange={(value) =>
-              updateParam("status", value === "ALL" ? undefined : value)
-            }
+            onValueChange={(value) => updateParam("status", value)}
           >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Status Order" />
             </SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((option) => (
-                <SelectItem
-                  key={option.value || "ALL"}
-                  value={option.value || "ALL"}
-                >
+                <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          {/* CLEAR FILTERS */}
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -147,23 +132,22 @@ export default function OrderFilters() {
         </div>
       </div>
 
-      {/* ACTIVE FILTERS BADGES */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2">
           {searchParams.get("search") && (
-            <div className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+            <div className="inline-flex items-center gap-1 px-3 py-1 text-caption bg-chart-1/10 text-chart-1 rounded-full">
               <Search className="h-3 w-3" />
               Search: "{searchParams.get("search")}"
             </div>
           )}
           {currentPayment && (
-            <div className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full">
+            <div className="inline-flex items-center gap-1 px-3 py-1 text-caption bg-success/10 text-success rounded-full">
               Payment:{" "}
               {PAYMENT_OPTIONS.find((o) => o.value === currentPayment)?.label}
             </div>
           )}
           {currentStatus && (
-            <div className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-purple-50 text-purple-700 rounded-full">
+            <div className="inline-flex items-center gap-1 px-3 py-1 text-caption bg-chart-2/10 text-chart-2 rounded-full">
               Status:{" "}
               {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.label}
             </div>

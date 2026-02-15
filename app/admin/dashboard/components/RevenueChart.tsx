@@ -1,3 +1,4 @@
+// app/admin/dashboard/components/RevenueChart.tsx
 "use client";
 import {
   LineChart,
@@ -10,30 +11,56 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface Props {
+  data: { month: string; revenue: number }[];
+  formatCurrency: (v: number) => string;
+  loading?: boolean;
+}
+
 export default function RevenueChart({
   data,
   formatCurrency,
-}: {
-  data: { month: string; revenue: number }[];
-  formatCurrency: (v: number) => string;
-}) {
+  loading = false,
+}: Props) {
+  if (loading) {
+    return (
+      <Card className="card-custom">
+        <CardHeader>
+          <CardTitle className="text-h4 text-primary">
+            Trend Penjualan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse h-64 bg-muted rounded"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card>
+    <Card className="card-custom">
       <CardHeader>
-        <CardTitle>Trend Penjualan</CardTitle>
+        <CardTitle className="text-h4 text-primary">Trend Penjualan</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer height={300}>
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip formatter={(v) => formatCurrency(Number(v))} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />{" "}
+            <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)" }} />{" "}
+            <YAxis tick={{ fill: "var(--muted-foreground)" }} />
+            <Tooltip
+              formatter={(v) => formatCurrency(Number(v))}
+              contentStyle={{
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+              }}
+            />
             <Line
               type="monotone"
               dataKey="revenue"
-              stroke="#2563eb"
-              strokeWidth={3}
+              stroke="var(--primary)"
+              strokeWidth={window.innerWidth < 640 ? 2 : 3}
             />
           </LineChart>
         </ResponsiveContainer>

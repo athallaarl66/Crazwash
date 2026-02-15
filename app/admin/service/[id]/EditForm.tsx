@@ -1,4 +1,4 @@
-// app/admin/service/[id]/EditForm.tsx - REDESIGNED
+// app/admin/service/[id]/EditForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -115,26 +115,32 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
-        <p className="text-gray-600">Memuat data layanan...</p>
+        <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground">Memuat data layanan...</p>
       </div>
     );
   }
 
   return (
-    <Card className="border shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-white border-b">
-        <CardTitle className="flex items-center gap-3 text-2xl">
-          <Package className="h-7 w-7 text-blue-600" />
-          Edit Layanan: <span className="text-blue-700">{product.name}</span>
+    <Card className="card-custom">
+      <CardHeader className="bg-muted border-b border-border">
+        {" "}
+        {/* Pakai bg-muted, border-border */}
+        <CardTitle className="flex items-center gap-3 text-h4">
+          {" "}
+          {/* Pakai text-h4 */}
+          <Package className="h-7 w-7 text-primary" />
+          Edit Layanan: <span className="text-primary">{product.name}</span>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="pt-8">
         {/* ALERTS */}
         {error && (
-          <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700">
+          <div className="p-4 mb-6 bg-destructive/10 border border-destructive/20 rounded-lg">
+            {" "}
+            {/* Pakai bg-destructive/10 */}
+            <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
               <p>{error}</p>
             </div>
@@ -142,8 +148,10 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         )}
 
         {success && (
-          <div className="p-4 mb-6 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 text-green-700">
+          <div className="p-4 mb-6 bg-success/10 border border-success/20 rounded-lg">
+            {" "}
+            {/* Pakai bg-success/10 */}
+            <div className="flex items-center gap-2 text-success">
               <AlertCircle className="h-4 w-4" />
               <p>{success}</p>
             </div>
@@ -153,7 +161,9 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* BASIC INFORMATION SECTION */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3">
+            <h3 className="text-h5 text-foreground border-l-4 border-primary pl-3">
+              {" "}
+              {/* Pakai text-h5, text-foreground, border-primary */}
               Informasi Dasar
             </h3>
 
@@ -162,10 +172,10 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="name"
-                  className="font-semibold flex items-center gap-2"
+                  className="font-semibold flex items-center gap-2 text-foreground" // Pakai text-foreground
                 >
                   <span>Nama Layanan</span>
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
@@ -175,7 +185,9 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                   placeholder="Contoh: Premium Clean"
                   className="h-12"
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-body-sm text-muted-foreground">
+                  {" "}
+                  {/* Pakai text-body-sm, text-muted-foreground */}
                   Nama layanan yang akan ditampilkan
                 </p>
               </div>
@@ -184,10 +196,10 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="category"
-                  className="font-semibold flex items-center gap-2"
+                  className="font-semibold flex items-center gap-2 text-foreground"
                 >
                   <span>Kategori</span>
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   name="category"
@@ -206,7 +218,9 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                       >
                         <div className="flex flex-col">
                           <span className="font-medium">{option.label}</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-caption text-muted-foreground">
+                            {" "}
+                            {/* Pakai text-caption */}
                             {option.description}
                           </span>
                         </div>
@@ -219,7 +233,10 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
             {/* DESCRIPTION */}
             <div className="space-y-3">
-              <Label htmlFor="description" className="font-semibold">
+              <Label
+                htmlFor="description"
+                className="font-semibold text-foreground"
+              >
                 Deskripsi Layanan
               </Label>
               <Textarea
@@ -230,7 +247,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                 placeholder="Jelaskan detail layanan, manfaat, dan proses pengerjaan..."
                 className="resize-none"
               />
-              <p className="text-sm text-gray-500">
+              <p className="text-body-sm text-muted-foreground">
                 Deskripsi akan ditampilkan ke pelanggan
               </p>
             </div>
@@ -238,7 +255,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
           {/* PRICING & DURATION SECTION */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3">
+            <h3 className="text-h5 text-foreground border-l-4 border-primary pl-3">
               Harga & Durasi
             </h3>
 
@@ -247,13 +264,13 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="price"
-                  className="font-semibold flex items-center gap-2"
+                  className="font-semibold flex items-center gap-2 text-foreground"
                 >
                   <span>Harga per Sepatu (Rp)</span>
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
                     Rp
                   </span>
                   <Input
@@ -268,20 +285,22 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                     placeholder="45000"
                   />
                 </div>
-                <p className="text-sm text-gray-500">Minimal Rp 1.000</p>
+                <p className="text-body-sm text-muted-foreground">
+                  Minimal Rp 1.000
+                </p>
               </div>
 
               {/* DURATION */}
               <div className="space-y-3">
                 <Label
                   htmlFor="duration"
-                  className="font-semibold flex items-center gap-2"
+                  className="font-semibold flex items-center gap-2 text-foreground"
                 >
                   <span>Durasi Pengerjaan (hari)</span>
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="duration"
                     name="duration"
@@ -294,7 +313,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                     placeholder="24"
                   />
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-body-sm text-muted-foreground">
                   Estimasi waktu dalam jam (1-168)
                 </p>
               </div>
@@ -303,16 +322,23 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
           {/* STATUS SECTION */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3">
+            <h3 className="text-h5 text-foreground border-l-4 border-primary pl-3">
               Status & Visibilitas
             </h3>
 
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl border">
+            <div className="flex items-center justify-between p-6 bg-muted rounded-xl border border-border">
+              {" "}
+              {/* Pakai bg-muted, border-border */}
               <div className="space-y-1">
-                <Label htmlFor="isActive" className="font-semibold text-lg">
+                <Label
+                  htmlFor="isActive"
+                  className="font-semibold text-h5 text-foreground"
+                >
+                  {" "}
+                  {/* Pakai text-h5 */}
                   Aktifkan Layanan
                 </Label>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Tampilkan layanan ini ke pelanggan
                 </p>
               </div>
@@ -326,7 +352,9 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
+            {" "}
+            {/* Mobile-first, border-border */}
             <Button
               type="button"
               variant="outline"
@@ -340,7 +368,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 h-12 gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              className="flex-1 h-12 gap-2 bg-primary hover:bg-primary/90" // Pakai bg-primary
             >
               {loading ? (
                 <>

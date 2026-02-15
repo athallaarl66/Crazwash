@@ -8,12 +8,11 @@ import Link from "next/link";
 import { Customer } from "../types";
 
 const statusColor: Record<Customer["status"], string> = {
-  ACTIVE: "bg-green-100 text-green-700",
-  IDLE: "bg-yellow-100 text-yellow-700",
-  DORMANT: "bg-red-100 text-red-700",
+  ACTIVE: "bg-success/10 text-success border-success/20",
+  IDLE: "bg-warning/10 text-warning border-warning/20",
+  DORMANT: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-// Terjemahan status
 const translateStatus = (status: Customer["status"]) => {
   const translations = {
     ACTIVE: "Aktif",
@@ -37,16 +36,28 @@ export default function CustomersTable({
   };
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40">
+    <div className="rounded-lg border overflow-x-auto shadow-soft">
+      <table className="w-full text-body-sm">
+        <thead className="bg-muted">
           <tr>
-            <th className="text-left p-3">Customer</th>
-            <th className="text-left p-3">Kontak</th>
-            <th className="text-left p-3">Status</th>
-            <th className="text-center p-3">Orders</th>
-            <th className="text-right p-3">Total Belanja</th>
-            <th className="text-left p-3">Pesanan Terakhir</th>
+            <th className="text-left p-3 font-semibold text-foreground">
+              Customer
+            </th>
+            <th className="text-left p-3 font-semibold text-foreground">
+              Kontak
+            </th>
+            <th className="text-left p-3 font-semibold text-foreground">
+              Status
+            </th>
+            <th className="text-center p-3 font-semibold text-foreground">
+              Orders
+            </th>
+            <th className="text-right p-3 font-semibold text-foreground">
+              Total Belanja
+            </th>
+            <th className="text-left p-3 font-semibold text-foreground">
+              Pesanan Terakhir
+            </th>
             <th />
           </tr>
         </thead>
@@ -63,28 +74,28 @@ export default function CustomersTable({
             </tr>
           ) : (
             customers.map((c) => (
-              // ✅ FIX: PAKE COMPOSITE KEY DENGAN userId
               <tr
                 key={`${c.phone}-${c.userId}`}
-                className="border-t hover:bg-muted/30"
+                className="border-t hover:bg-muted/50"
               >
                 <td className="p-3">
-                  <div className="font-medium">{c.name}</div>
-                  <div className="text-muted-foreground text-xs truncate max-w-[200px]">
+                  <div className="font-medium text-foreground">{c.name}</div>
+                  <div className="text-caption text-muted-foreground truncate max-w-[200px]">
                     {c.email || "Tidak ada email"}
                   </div>
                 </td>
 
                 <td className="p-3">
-                  <div className="font-medium">
-                    {/* 🚨 TAMPILKAN "NO PHONE" JIKA PAKE FORMAT NO-PHONE- */}
+                  <div className="font-medium text-foreground">
                     {c.phone && c.phone.startsWith("NO-PHONE-") ? (
-                      <span className="text-amber-600 italic">No Phone</span>
+                      <span className="text-warning italic">No Phone</span>
                     ) : (
                       c.phone || "No Phone"
                     )}
                   </div>
-                  <div className="text-xs text-muted-foreground">{c.city}</div>
+                  <div className="text-caption text-muted-foreground">
+                    {c.city}
+                  </div>
                 </td>
 
                 <td className="p-3">
@@ -93,11 +104,11 @@ export default function CustomersTable({
                   </Badge>
                 </td>
 
-                <td className="p-3 text-center font-semibold">
+                <td className="p-3 text-center font-semibold text-foreground">
                   {c.totalOrders}
                 </td>
 
-                <td className="p-3 text-right font-semibold">
+                <td className="p-3 text-right font-semibold text-foreground">
                   {formatCurrency(c.totalSpending)}
                 </td>
 

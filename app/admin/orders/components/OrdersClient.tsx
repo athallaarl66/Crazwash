@@ -3,6 +3,7 @@
 
 import OrdersTable from "./OrdersTable";
 import OrderFilters from "./OrderFilters";
+import { Button } from "@/components/ui/button"; // Tambah import Button
 import { useRouter, useSearchParams } from "next/navigation";
 import type { OrderWithServices } from "@/lib/orderService";
 
@@ -30,27 +31,26 @@ export default function OrdersClient({
 
       <OrdersTable orders={orders} />
 
-      {/* PAGINATION */}
       <div className="flex justify-between items-center">
-        <button
+        <Button
+          variant="outline"
           disabled={page <= 1}
           onClick={() => setPage(page - 1)}
-          className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Prev
-        </button>
+        </Button>
 
-        <span className="text-sm">
+        <span className="text-body-sm text-muted-foreground">
           Page {page} of {totalPages}
         </span>
 
-        <button
+        <Button
+          variant="outline"
           disabled={page >= totalPages}
           onClick={() => setPage(page + 1)}
-          className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-// app/admin/service/[id]/page.tsx - REDESIGNED VERSION
+// app/admin/service/[id]/page.tsx
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -43,25 +43,30 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      {" "}
+      {/* Pakai bg-background */}
       {/* HEADER WITH BREADCRUMB */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <Link href="/admin" className="hover:text-gray-700">
+        <div className="flex items-center gap-2 text-body-sm text-muted-foreground mb-4">
+          {" "}
+          {/* Pakai text-body-sm, text-muted-foreground */}
+          <Link href="/admin" className="hover:text-foreground">
             Admin
           </Link>
           <span>/</span>
-          <Link href="/admin/service" className="hover:text-gray-700">
+          <Link href="/admin/service" className="hover:text-foreground">
             Layanan
           </Link>
           <span>/</span>
-          <span className="font-medium text-gray-900">{product.name}</span>
+          <span className="font-medium text-foreground">{product.name}</span>
         </div>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-h2 text-primary">{product.name}</h1>{" "}
+            {/* Pakai text-h2, text-primary */}
+            <p className="text-muted-foreground mt-1">
               ID: #{product.id} • Detail layanan lengkap
             </p>
           </div>
@@ -73,7 +78,9 @@ export default async function ProductDetailPage({
               </Button>
             </Link>
             <Link href={`/admin/service/${product.id}/edit`}>
-              <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+              <Button className="gap-2 bg-primary hover:bg-primary/90">
+                {" "}
+                {/* Pakai bg-primary */}
                 <Edit className="h-4 w-4" />
                 Edit Layanan
               </Button>
@@ -81,16 +88,21 @@ export default async function ProductDetailPage({
           </div>
         </div>
       </div>
-
       {/* MAIN CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN - PRODUCT DETAILS */}
         <div className="lg:col-span-2 space-y-6">
           {/* PRODUCT INFORMATION CARD */}
-          <Card className="border shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-white pb-4 border-b">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <Package className="h-6 w-6 text-blue-600" />
+          <Card className="card-custom">
+            {" "}
+            {/* Pakai card-custom */}
+            <CardHeader className="bg-muted pb-4 border-b border-border">
+              {" "}
+              {/* Pakai bg-muted, border-border */}
+              <CardTitle className="flex items-center gap-3 text-h4">
+                {" "}
+                {/* Pakai text-h4 */}
+                <Package className="h-6 w-6 text-primary" />
                 Informasi Layanan
               </CardTitle>
             </CardHeader>
@@ -99,22 +111,26 @@ export default async function ProductDetailPage({
                 {/* NAME & CATEGORY */}
                 <div className="space-y-6">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wide">
+                      {" "}
+                      {/* Pakai text-caption, text-muted-foreground */}
                       Nama Layanan
                     </label>
-                    <p className="text-xl font-bold text-gray-900 mt-1">
+                    <p className="text-h5 text-foreground mt-1">
+                      {" "}
+                      {/* Pakai text-h5, text-foreground */}
                       {product.name}
                     </p>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wide">
                       Kategori
                     </label>
                     <div className="mt-2">
                       <Badge
                         variant="outline"
-                        className="px-4 py-2 text-base border-blue-200 bg-blue-50 text-blue-700"
+                        className="px-4 py-2 text-body border-border bg-muted text-foreground" // Pakai text-body, border-border, bg-muted, text-foreground
                       >
                         <Tag className="h-4 w-4 mr-2" />
                         {CATEGORY_LABELS[product.category]}
@@ -126,30 +142,39 @@ export default async function ProductDetailPage({
                 {/* PRICE & DURATION */}
                 <div className="space-y-6">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wide">
                       Harga
                     </label>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl font-bold text-gray-900">
+                      <span className="text-2xl sm:text-3xl font-bold text-foreground">
+                        {" "}
+                        {/* Mobile-first: text-2xl sm:text-3xl */}
                         {formatCurrency(Number(product.price))}
                       </span>
-                      <span className="text-gray-500">/ sepatu</span>
+                      <span className="text-muted-foreground">/ sepatu</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wide">
                       Durasi Pengerjaan
                     </label>
                     <div className="flex items-center gap-3 mt-2">
-                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Clock className="h-6 w-6 text-blue-600" />
+                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                        {" "}
+                        {/* Pakai bg-muted */}
+                        <Clock className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-xl sm:text-2xl font-bold text-foreground">
+                          {" "}
+                          {/* Mobile-first */}
                           {product.duration} jam
                         </p>
-                        <p className="text-sm text-gray-500">Estimasi waktu</p>
+                        <p className="text-body-sm text-muted-foreground">
+                          Estimasi waktu
+                        </p>{" "}
+                        {/* Pakai text-body-sm */}
                       </div>
                     </div>
                   </div>
@@ -160,25 +185,33 @@ export default async function ProductDetailPage({
 
               {/* DESCRIPTION */}
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">
+                <label className="text-caption font-semibold text-muted-foreground uppercase tracking-wide mb-3 block">
                   Deskripsi Layanan
                 </label>
-                <div className="bg-gray-50 rounded-xl p-6 border">
+                <div className="bg-muted rounded-xl p-6 border border-border">
+                  {" "}
+                  {/* Pakai bg-muted, border-border */}
                   {product.description ? (
                     <div className="prose prose-gray max-w-none">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      <p className="text-body text-foreground leading-relaxed whitespace-pre-line">
+                        {" "}
+                        {/* Pakai text-body, text-foreground */}
                         {product.description}
                       </p>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                        <Package className="h-6 w-6 text-gray-400" />
+                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                        {" "}
+                        {/* Pakai bg-muted */}
+                        <Package className="h-6 w-6 text-muted-foreground" />
                       </div>
-                      <p className="text-gray-400 font-medium">
+                      <p className="text-muted-foreground font-medium">
                         Belum ada deskripsi
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-body-sm text-muted-foreground mt-1">
+                        {" "}
+                        {/* Pakai text-body-sm */}
                         Tambahkan deskripsi untuk layanan ini
                       </p>
                     </div>
@@ -189,44 +222,54 @@ export default async function ProductDetailPage({
           </Card>
 
           {/* METADATA CARD */}
-          <Card className="border shadow-sm">
+          <Card className="card-custom">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-gray-500" />
+              <CardTitle className="text-h5 flex items-center gap-2">
+                {" "}
+                {/* Pakai text-h5 */}
+                <Calendar className="h-5 w-5 text-muted-foreground" />
                 Informasi Sistem
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-500">Status</p>
+                <div className="bg-muted rounded-lg p-4">
+                  {" "}
+                  {/* Pakai bg-muted */}
+                  <p className="text-body-sm font-medium text-muted-foreground">
+                    Status
+                  </p>
                   <div className="flex items-center gap-2 mt-2">
                     {product.isActive ? (
                       <>
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span className="font-semibold text-green-700">
+                        <CheckCircle className="h-5 w-5 text-success" />
+                        <span className="font-semibold text-success">
                           Aktif
                         </span>
                       </>
                     ) : (
                       <>
-                        <XCircle className="h-5 w-5 text-red-500" />
-                        <span className="font-semibold text-red-700">
+                        <XCircle className="h-5 w-5 text-destructive" />
+                        <span className="font-semibold text-destructive">
                           Nonaktif
                         </span>
                       </>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-caption text-muted-foreground mt-1">
+                    {" "}
+                    {/* Pakai text-caption */}
                     {product.isActive
                       ? "Ditampilkan ke pelanggan"
                       : "Tidak ditampilkan"}
                   </p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-500">Dibuat</p>
-                  <p className="font-semibold text-gray-900 mt-2">
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-body-sm font-medium text-muted-foreground">
+                    Dibuat
+                  </p>
+                  <p className="font-semibold text-foreground mt-2">
                     {new Date(product.createdAt).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",
@@ -234,7 +277,7 @@ export default async function ProductDetailPage({
                       year: "numeric",
                     })}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-caption text-muted-foreground mt-1">
                     {new Date(product.createdAt).toLocaleTimeString("id-ID", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -242,11 +285,11 @@ export default async function ProductDetailPage({
                   </p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-500">
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-body-sm font-medium text-muted-foreground">
                     Terakhir Update
                   </p>
-                  <p className="font-semibold text-gray-900 mt-2">
+                  <p className="font-semibold text-foreground mt-2">
                     {new Date(product.updatedAt).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",
@@ -254,7 +297,7 @@ export default async function ProductDetailPage({
                       year: "numeric",
                     })}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-caption text-muted-foreground mt-1">
                     {new Date(product.updatedAt).toLocaleTimeString("id-ID", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -269,9 +312,9 @@ export default async function ProductDetailPage({
         {/* RIGHT COLUMN - ACTIONS & STATS */}
         <div className="space-y-6">
           {/* QUICK ACTIONS CARD */}
-          <Card className="border shadow-sm">
+          <Card className="card-custom">
             <CardHeader>
-              <CardTitle className="text-lg">Aksi Cepat</CardTitle>
+              <CardTitle className="text-h5">Aksi Cepat</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Link
@@ -285,7 +328,9 @@ export default async function ProductDetailPage({
                   <Edit className="h-4 w-4" />
                   <div className="text-left">
                     <p className="font-medium">Edit Layanan</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-caption text-muted-foreground">
+                      {" "}
+                      {/* Pakai text-caption */}
                       Ubah informasi layanan
                     </p>
                   </div>
@@ -299,18 +344,20 @@ export default async function ProductDetailPage({
                 <Package className="h-4 w-4" />
                 <div className="text-left">
                   <p className="font-medium">Duplikat Layanan</p>
-                  <p className="text-xs text-gray-500">Buat versi baru</p>
+                  <p className="text-caption text-muted-foreground">
+                    Buat versi baru
+                  </p>
                 </div>
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full justify-start gap-3 h-12 text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive hover:bg-destructive/10" // Pakai text-destructive
               >
                 <XCircle className="h-4 w-4" />
                 <div className="text-left">
                   <p className="font-medium">Nonaktifkan</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-caption text-muted-foreground">
                     Sembunyikan dari pelanggan
                   </p>
                 </div>
@@ -320,24 +367,24 @@ export default async function ProductDetailPage({
 
           {/* STATUS OVERVIEW CARD */}
           <Card
-            className={`border ${product.isActive ? "border-green-200" : "border-gray-200"} shadow-sm`}
+            className={`card-custom ${product.isActive ? "border-success/20" : "border-muted"}`} // Pakai border-success/20, border-muted
           >
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div
-                  className={`h-12 w-12 rounded-full flex items-center justify-center ${product.isActive ? "bg-green-100" : "bg-gray-100"}`}
+                  className={`h-12 w-12 rounded-full flex items-center justify-center ${product.isActive ? "bg-success/10" : "bg-muted"}`} // Pakai bg-success/10, bg-muted
                 >
                   {product.isActive ? (
-                    <CheckCircle className="h-6 w-6 text-green-600" />
+                    <CheckCircle className="h-6 w-6 text-success" />
                   ) : (
-                    <XCircle className="h-6 w-6 text-gray-400" />
+                    <XCircle className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">
+                  <h3 className="font-semibold text-h5">
                     {product.isActive ? "Layanan Aktif" : "Layanan Nonaktif"}
                   </h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-muted-foreground mt-1">
                     {product.isActive
                       ? "Layanan ini sedang ditampilkan dan dapat dipesan oleh pelanggan."
                       : "Layanan ini disembunyikan dan tidak dapat dipesan oleh pelanggan."}
@@ -353,20 +400,24 @@ export default async function ProductDetailPage({
           </Card>
 
           {/* PRODUCT ID CARD */}
-          <Card className="border shadow-sm bg-gradient-to-br from-gray-50 to-white">
+          <Card className="card-custom bg-muted/50">
+            {" "}
+            {/* Pakai card-custom, bg-muted/50 */}
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-body-sm font-medium text-muted-foreground uppercase tracking-wide">
                   ID Layanan
                 </p>
                 <div className="mt-3">
-                  <div className="inline-block bg-gray-900 text-white px-4 py-3 rounded-lg">
-                    <code className="text-xl font-mono font-bold">
+                  <div className="inline-block bg-foreground text-background px-4 py-3 rounded-lg">
+                    {" "}
+                    {/* Pakai bg-foreground, text-background */}
+                    <code className="text-h5 font-mono font-bold">
                       #{product.id}
                     </code>
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-3">
+                <p className="text-caption text-muted-foreground mt-3">
                   Gunakan ID ini untuk referensi internal
                 </p>
               </div>

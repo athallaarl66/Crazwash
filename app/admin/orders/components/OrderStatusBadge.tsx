@@ -12,12 +12,8 @@ import {
 } from "@/components/ui/select";
 import { updateOrderStatusAction } from "../action";
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 
-/* ===============================
-   ADMIN VISIBLE CONFIG
-================================ */
-
-// Status yg boleh muncul di admin
 const ADMIN_STATUSES: OrderStatus[] = [
   "PENDING",
   "CONFIRMED",
@@ -26,7 +22,6 @@ const ADMIN_STATUSES: OrderStatus[] = [
   "CANCELLED",
 ];
 
-// Label ramah admin
 const STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING: "Menunggu",
   CONFIRMED: "Dikonfirmasi",
@@ -37,36 +32,25 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELLED: "Dibatalkan",
 };
 
-// Warna konsisten & clean
 const STATUS_COLOR: Record<OrderStatus, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  READY: "bg-purple-50 text-purple-700 border-purple-200",
-  COMPLETED: "bg-green-50 text-green-700 border-green-200",
-  CANCELLED: "bg-red-50 text-red-700 border-red-200",
-
-  // internal (ga pernah keliatan)
+  PENDING: "bg-warning/10 text-warning border-warning/20",
+  CONFIRMED: "bg-chart-1/10 text-chart-1 border-chart-1/20",
+  READY: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  COMPLETED: "bg-success/10 text-success border-success/20",
+  CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
   PICKED_UP: "",
   IN_PROGRESS: "",
 };
 
-// Flow sederhana & masuk akal
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ["CONFIRMED", "CANCELLED"],
   CONFIRMED: ["READY", "CANCELLED"],
   READY: ["COMPLETED", "CANCELLED"],
-
   COMPLETED: ["READY"],
   CANCELLED: ["PENDING"],
-
-  // internal (ga dipakai di admin)
   PICKED_UP: ["READY"],
   IN_PROGRESS: ["READY"],
 };
-
-/* ===============================
-   HELPER
-================================ */
 
 function normalizeStatus(status: OrderStatus): OrderStatus {
   if (status === "PICKED_UP" || status === "IN_PROGRESS") {
@@ -74,10 +58,6 @@ function normalizeStatus(status: OrderStatus): OrderStatus {
   }
   return status;
 }
-
-/* ===============================
-   COMPONENT
-================================ */
 
 type Props = {
   orderId: number;
@@ -108,9 +88,19 @@ export default function OrderStatusBadge({ orderId, status }: Props) {
   return (
     <Select value={current} onValueChange={onChange} disabled={isPending}>
       <SelectTrigger
-        className={clsx("h-8 w-[160px] text-xs border", STATUS_COLOR[current])}
+        className={clsx(
+          "h-8 w-[160px] sm:w-[180px] text-caption border",
+          STATUS_COLOR[current],
+        )}
       >
-        <SelectValue>{STATUS_LABEL[current]}</SelectValue>
+        {isPending ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Updating...
+          </div>
+        ) : (
+          <SelectValue>{STATUS_LABEL[current]}</SelectValue>
+        )}
       </SelectTrigger>
 
       <SelectContent>

@@ -1,3 +1,4 @@
+// app/admin/dashboard/components/Revenuebreakdown.tsx
 "use client";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,9 +11,14 @@ interface Props {
     count: number;
   }[];
   formatCurrency: (v: number) => string;
+  loading?: boolean;
 }
 
-export default function RevenueBreakdown({ data, formatCurrency }: Props) {
+export default function RevenueBreakdown({
+  data,
+  formatCurrency,
+  loading = false,
+}: Props) {
   const statusConfig: Record<
     string,
     { label: string; icon: React.ReactElement; color: string; bgColor: string }
@@ -20,45 +26,70 @@ export default function RevenueBreakdown({ data, formatCurrency }: Props) {
     PAID: {
       label: "Sudah Dibayar",
       icon: <CheckCircle className="h-5 w-5" />,
-      color: "text-green-600",
-      bgColor: "bg-green-500",
+      color: "text-success",
+      bgColor: "bg-success",
     },
     UNPAID: {
       label: "Belum Dibayar",
       icon: <Clock className="h-5 w-5" />,
-      color: "text-orange-600",
-      bgColor: "bg-orange-500",
+      color: "text-warning",
+      bgColor: "bg-warning",
     },
     REFUNDED: {
       label: "Refund",
       icon: <RotateCcw className="h-5 w-5" />,
-      color: "text-red-600",
-      bgColor: "bg-red-500",
+      color: "text-destructive",
+      bgColor: "bg-destructive",
     },
   };
 
   const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
 
-  if (data.length === 0) {
+  if (loading) {
     return (
-      <Card>
+      <Card className="card-custom">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-h4 text-primary">
             <CreditCard className="h-5 w-5" />
             Status Pembayaran
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500 text-center py-8">Belum ada data</p>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-2 bg-muted rounded"></div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="card-custom">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-h4 text-primary">
+            <CreditCard className="h-5 w-5" />
+            Status Pembayaran
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-8 text-body">
+            Belum ada data
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="card-custom">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-h4 text-primary">
           <CreditCard className="h-5 w-5" />
           Status Pembayaran
         </CardTitle>
@@ -68,8 +99,8 @@ export default function RevenueBreakdown({ data, formatCurrency }: Props) {
           const config = statusConfig[item.status] || {
             label: item.status,
             icon: <CreditCard className="h-5 w-5" />,
-            color: "text-gray-600",
-            bgColor: "bg-gray-500",
+            color: "text-muted-foreground",
+            bgColor: "bg-muted",
           };
 
           const percentage =
@@ -80,25 +111,27 @@ export default function RevenueBreakdown({ data, formatCurrency }: Props) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className={config.color}>{config.icon}</div>
-                  <span className="font-medium">{config.label}</span>
+                  <span className="font-medium text-body">{config.label}</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">{formatCurrency(item.amount)}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-bold text-primary">
+                    {formatCurrency(item.amount)}
+                  </div>
+                  <div className="text-caption text-muted-foreground">
                     {item.count} order
                   </div>
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              {/* Progress Bar - Mobile-first */}
+              <div className="h-3 bg-muted rounded-full overflow-hidden min-w-0">
                 <div
-                  className={`h-full ${config.bgColor}`}
-                  style={{ width: `${percentage}%` }}
+                  className={`h-full ${config.bgColor} transition-all duration-300`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
                 />
               </div>
 
-              <div className="text-xs text-gray-500 text-right">
+              <div className="text-caption text-muted-foreground text-right">
                 {percentage.toFixed(1)}%
               </div>
             </div>
@@ -106,8 +139,8 @@ export default function RevenueBreakdown({ data, formatCurrency }: Props) {
         })}
 
         {/* Total */}
-        <div className="pt-3 border-t mt-4">
-          <div className="flex items-center justify-between font-bold text-lg">
+        <div className="pt-3 border-t mt-4 border-border">
+          <div className="flex items-center justify-between font-bold text-h5 text-primary">
             <span>Total</span>
             <span>{formatCurrency(totalAmount)}</span>
           </div>

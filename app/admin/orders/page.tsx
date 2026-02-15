@@ -1,12 +1,12 @@
-// app/(admin)/orders/page.tsx
-
+// app/admin/orders/page.tsx
 import { Suspense } from "react";
 import OrdersClient from "@/app/admin/orders/components/OrdersClient";
 import { getAllOrders } from "@/lib/orderService";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, BarChart } from "lucide-react";
+import { Plus, Download, BarChart, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type PageProps = {
   searchParams?: {
@@ -27,13 +27,28 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       ? (params.payment as PaymentStatus)
       : undefined;
 
-  const result = await getAllOrders({
-    search: params.search,
-    paymentStatus: validPaymentStatus,
-    status: params.status,
-    page,
-    limit: 10,
-  });
+  let result;
+  try {
+    result = await getAllOrders({
+      search: params.search,
+      paymentStatus: validPaymentStatus,
+      status: params.status,
+      page,
+      limit: 10,
+    });
+  } catch (error) {
+    return (
+      <div className="container-custom py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading orders:{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const paidOrders = result.data.filter(
     (o) => o.paymentStatus === "PAID",
@@ -48,14 +63,14 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     .reduce((sum, order) => sum + Number(order.totalPrice), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="container-custom py-8 space-y-6">
+      {" "}
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Orders Management
-          </h1>
+          <h1 className="text-h2 text-primary"> Orders Management</h1>
           <p className="text-muted-foreground mt-1">
+            {" "}
             Kelola semua pesanan dari pelanggan ShoesWash
           </p>
         </div>
@@ -74,50 +89,68 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           </Button>
         </div>
       </div>
-
       {/* QUICK STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="card-custom">
+          {" "}
           <CardContent className="pt-6">
-            <p className="text-sm font-medium">Total Orders</p>
-            <p className="text-2xl font-bold">{result.total}</p>
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Total Orders
+            </p>{" "}
+            <p className="text-2xl font-bold text-primary">
+              {result.total}
+            </p>{" "}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-custom">
           <CardContent className="pt-6">
-            <p className="text-sm font-medium">Lunas</p>
-            <p className="text-2xl font-bold">{paidOrders}</p>
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Lunas
+            </p>
+            <p className="text-2xl font-bold text-success">{paidOrders}</p>{" "}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-custom">
           <CardContent className="pt-6">
-            <p className="text-sm font-medium">Belum Bayar</p>
-            <p className="text-2xl font-bold">{unpaidOrders}</p>
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Belum Bayar
+            </p>
+            <p className="text-2xl font-bold text-destructive">
+              {unpaidOrders}
+            </p>{" "}
           </CardContent>
         </Card>
       </div>
-
       {/* MAIN CONTENT */}
-      <Card className="border shadow-sm">
-        <CardHeader className="pb-3 border-b">
+      <Card className="card-custom">
+        {" "}
+        <CardHeader className="pb-3 border-b border-border">
+          {" "}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-xl">Daftar Pesanan</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <CardTitle className="text-h4">Daftar Pesanan</CardTitle>{" "}
+              <p className="text-body-sm text-muted-foreground mt-1">
+                {" "}
                 Menampilkan {result.data.length} dari {result.total} pesanan •
                 Revenue: Rp {totalRevenue.toLocaleString("id-ID")}
               </p>
             </div>
-            <div className="text-sm text-muted-foreground bg-gray-50 px-3 py-1 rounded-md">
+            <div className="text-body-sm text-muted-foreground bg-muted px-3 py-1 rounded-md">
+              {" "}
               Page {result.page} of {result.totalPages}
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="pt-6">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-pulse h-8 bg-muted rounded w-32"></div>{" "}
+              </div>
+            }
+          >
             <OrdersClient
               orders={result.data}
               page={result.page}

@@ -1,3 +1,4 @@
+// app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,17 +67,16 @@ export default function LandingPage() {
 
       {/* ================= HERO ================= */}
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        {/* Animated Background Blobs */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-pulse" />
         <div
-          className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/40 rounded-full blur-3xl animate-pulse-slow"
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/40 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         />
 
-        <div className="relative container-custom mx-auto py-20 lg:py-28 text-center max-w-4xl">
+        <div className="container-custom mx-auto py-20 lg:py-28 text-center max-w-4xl">
           <Badge
             variant="secondary"
-            className="mb-6 bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-medium"
+            className="mb-6 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20 text-body-sm font-medium"
           >
             Premium Shoe & Bag Cleaning
           </Badge>
@@ -92,14 +92,14 @@ export default function LandingPage() {
             Deep clean profesional + pickup delivery terpercaya.
           </p>
 
-          <p className="font-semibold text-secondary mb-10 tracking-wide text-lg">
+          <p className="font-semibold text-secondary mb-10 tracking-wide text-body">
             "ANDA PUAS SAYA TEWAS"
           </p>
 
           <Link href="/order">
             <Button
               size="lg"
-              className="bg-card text-card-foreground hover:bg-card/90 shadow-soft-lg rounded-full px-10 py-6 text-base font-semibold transition-all duration-300 hover:scale-105"
+              className="bg-card text-card-foreground hover:bg-card/90 shadow-soft-lg rounded-full px-10 py-6 text-body font-semibold transition-all duration-300 hover:scale-105"
             >
               Pesan Sekarang
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -113,11 +113,9 @@ export default function LandingPage() {
         <div className="container-custom mx-auto max-w-4xl">
           <h2 className="text-h2 mb-10 text-center">Price List</h2>
 
-          {/* GRID LAYOUT - 2 COLUMNS FOR SHOES & BAGS */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* SHOES */}
             <div className="card-custom p-6">
-              <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+              <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
                 {CATEGORY_CONFIG.shoes.title}
               </h3>
               <div className="space-y-2.5">
@@ -127,15 +125,15 @@ export default function LandingPage() {
                     className="flex items-center justify-between py-2 group"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm group-hover:text-accent transition-colors">
+                      <span className="text-body-sm group-hover:text-primary transition-colors">
                         {service.name}
                       </span>
                       {service.badge && (
                         <Badge
                           variant="secondary"
-                          className={`text-xs px-2 py-0.5 ${
+                          className={`text-caption px-2 py-0.5 ${
                             service.badge === "BEST"
-                              ? "bg-accent text-accent-foreground"
+                              ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-secondary-foreground"
                           }`}
                         >
@@ -143,7 +141,7 @@ export default function LandingPage() {
                         </Badge>
                       )}
                     </div>
-                    <span className="font-bold text-accent tabular-nums text-sm">
+                    <span className="font-bold text-primary tabular-nums text-body-sm">
                       {service.price}
                     </span>
                   </div>
@@ -151,9 +149,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* BAGS */}
             <div className="card-custom p-6">
-              <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+              <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
                 {CATEGORY_CONFIG.bags.title}
               </h3>
               <div className="space-y-2.5">
@@ -162,10 +159,10 @@ export default function LandingPage() {
                     key={i}
                     className="flex items-center justify-between py-2 group"
                   >
-                    <span className="text-sm group-hover:text-accent transition-colors">
+                    <span className="text-body-sm group-hover:text-primary transition-colors">
                       {service.name}
                     </span>
-                    <span className="font-bold text-accent tabular-nums text-sm">
+                    <span className="font-bold text-primary tabular-nums text-body-sm">
                       {service.price}
                     </span>
                   </div>
@@ -174,9 +171,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* SPECIAL TREATMENT - FULL WIDTH */}
           <div className="card-custom p-6">
-            <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide text-accent border-b border-border pb-2">
+            <h3 className="text-body font-semibold mb-4 uppercase tracking-wide text-primary border-b border-border pb-2">
               {CATEGORY_CONFIG.special.title}
             </h3>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
@@ -186,13 +182,13 @@ export default function LandingPage() {
                   className="flex items-center justify-between py-2 group"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm group-hover:text-accent transition-colors">
+                    <span className="text-body-sm group-hover:text-primary transition-colors">
                       {service.name}
                     </span>
                     {service.badge && (
                       <Badge
                         variant="secondary"
-                        className={`text-xs px-2 py-0.5 ${
+                        className={`text-caption px-2 py-0.5 ${
                           service.badge === "REPAIR"
                             ? "bg-warning text-warning-foreground"
                             : "bg-primary text-primary-foreground"
@@ -202,7 +198,7 @@ export default function LandingPage() {
                       </Badge>
                     )}
                   </div>
-                  <span className="font-bold text-accent tabular-nums text-sm">
+                  <span className="font-bold text-primary tabular-nums text-body-sm">
                     {service.price}
                   </span>
                 </div>
@@ -210,12 +206,11 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* CTA BUTTON */}
           <div className="text-center mt-10">
             <Link href="/services">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-accent shadow-soft-lg rounded-full px-10 py-6 text-base font-semibold transition-all duration-300"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft-lg rounded-full px-10 py-6 text-body font-semibold transition-all duration-300"
               >
                 Lihat Semua Layanan
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -286,7 +281,6 @@ export default function LandingPage() {
 
       {/* ================= CTA ================= */}
       <section className="py-16 lg:py-20 bg-gradient-to-br from-primary via-accent to-secondary text-primary-foreground text-center relative overflow-hidden">
-        {/* Background Effects */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent)]" />
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
@@ -303,7 +297,7 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 variant="default"
-                className="bg-white text-primary hover:bg-transparent hover:text-white hover:border-2 hover:border-white rounded-full px-10 py-6 text-base font-semibold backdrop-blur-sm transition-all duration-300 group"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 hover:text-primary rounded-full px-10 py-6 text-body font-semibold backdrop-blur-sm transition-all duration-300 group"
               >
                 <span className="flex items-center gap-2">
                   Pesan Sekarang
@@ -313,8 +307,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Trust badges */}
-          <div className="mt-10 flex flex-wrap gap-6 justify-center text-sm opacity-90">
+          <div className="mt-10 flex flex-wrap gap-6 justify-center text-body-sm opacity-90">
             <span className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               100% Aman

@@ -2,6 +2,8 @@
 import { getOrderById } from "@/lib/orderService";
 import { notFound } from "next/navigation";
 import OrderDetailView from "./OrderDetailView";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -10,7 +12,6 @@ interface OrderDetailPageProps {
 export default async function OrderDetailPage({
   params,
 }: OrderDetailPageProps) {
-  // Next.js 15: params adalah Promise
   const { id } = await params;
 
   const orderId = parseInt(id);
@@ -19,7 +20,22 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const order = await getOrderById(orderId);
+  let order;
+  try {
+    order = await getOrderById(orderId);
+  } catch (error) {
+    return (
+      <div className="container-custom py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading order:{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   if (!order) {
     notFound();

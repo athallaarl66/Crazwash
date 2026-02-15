@@ -1,3 +1,4 @@
+// app/admin/customers/types.ts
 import {
   CustomerSummary as LibCustomerSummary,
   CustomerStatus,

@@ -1,7 +1,9 @@
+// app/admin/customers/components/CustomersClient.tsx
 "use client";
 
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import CustomersTable from "./CustomerTable";
 import { Customer } from "../types";
 import ExportButton from "@/components/ui/export-button";
@@ -18,7 +20,6 @@ export default function CustomersClient({
     return customers.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        // ✅ FIX: Handle email yang mungkin null
         (c.email && c.email.toLowerCase().includes(q)) ||
         c.phone.includes(q),
     );
@@ -28,11 +29,10 @@ export default function CustomersClient({
   const totalRevenue = customers.reduce((s, c) => s + c.totalSpending, 0);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* HEADER DENGAN EXPORT BUTTON */}
+    <div className="container-custom py-8 space-y-6">
       <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Customers</h1>
+          <h1 className="text-h2 text-primary">Customers</h1>
           <p className="text-muted-foreground">
             Kelola data pelanggan dan riwayat pembelian
           </p>
@@ -52,26 +52,38 @@ export default function CustomersClient({
         className="max-w-md"
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Stat label="Total Customers" value={customers.length} />
-        <Stat label="Total Orders" value={totalOrders} />
-        <Stat
-          label="Total Revenue"
-          value={`Rp ${totalRevenue.toLocaleString("id-ID")}`}
-        />
+        <Card className="card-custom">
+          <CardContent className="pt-6">
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Total Customers
+            </p>
+            <p className="text-2xl font-bold text-primary">
+              {customers.length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="card-custom">
+          <CardContent className="pt-6">
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Total Orders
+            </p>
+            <p className="text-2xl font-bold text-primary">{totalOrders}</p>
+          </CardContent>
+        </Card>
+        <Card className="card-custom">
+          <CardContent className="pt-6">
+            <p className="text-body-sm font-medium text-muted-foreground">
+              Total Revenue
+            </p>
+            <p className="text-2xl font-bold text-primary">
+              Rp {totalRevenue.toLocaleString("id-ID")}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <CustomersTable customers={filteredCustomers} />
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: any }) {
-  return (
-    <div className="p-4 rounded-lg border bg-white">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
     </div>
   );
 }

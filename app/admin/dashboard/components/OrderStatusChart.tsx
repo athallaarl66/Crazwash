@@ -1,3 +1,4 @@
+// app/admin/dashboard/components/OrderStatusChart.tsx
 "use client";
 import {
   PieChart,
@@ -9,18 +10,16 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Status colors matching OrderStatus enum
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "#f59e0b", // Orange
-  CONFIRMED: "#3b82f6", // Blue
-  PICKED_UP: "#8b5cf6", // Purple
-  IN_PROGRESS: "#eab308", // Yellow
-  READY: "#06b6d4", // Cyan
-  COMPLETED: "#16a34a", // Green
-  CANCELLED: "#dc2626", // Red
+  PENDING: "var(--chart-4)",
+  CONFIRMED: "var(--chart-1)",
+  PICKED_UP: "var(--chart-2)",
+  IN_PROGRESS: "var(--chart-5)",
+  READY: "var(--chart-3)",
+  COMPLETED: "var(--success)",
+  CANCELLED: "var(--destructive)",
 };
 
-// Status labels in Indonesian
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "Menunggu",
   CONFIRMED: "Dikonfirmasi",
@@ -31,36 +30,42 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Dibatalkan",
 };
 
-export default function OrderStatusChart({
-  data,
-}: {
+interface Props {
   data: { status: string; count: number }[];
-}) {
-  // Transform data with labels
+  loading?: boolean;
+}
+
+export default function OrderStatusChart({ data, loading = false }: Props) {
   const chartData = data.map((item) => ({
     name: STATUS_LABELS[item.status] || item.status,
     value: item.count,
     status: item.status,
   }));
 
-  // Custom label to show count
   const renderLabel = (entry: any) => {
     return `${entry.value}`;
   };
 
-  // Custom legend
   const renderLegend = (props: any) => {
     const { payload } = props;
     return (
-      <div className="flex flex-wrap gap-3 justify-center mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 justify-center mt-4">
+        {" "}
         {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-2">
+          <div
+            key={index}
+            className="flex items-center gap-2 text-caption text-muted-foreground"
+          >
+            {" "}
             <div
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm">
-              {entry.value}: <strong>{entry.payload.value}</strong>
+            <span>
+              {entry.value}:{" "}
+              <strong className="text-primary">
+                {entry.payload.value}
+              </strong>{" "}
             </span>
           </div>
         ))}
@@ -68,23 +73,40 @@ export default function OrderStatusChart({
     );
   };
 
-  if (data.length === 0) {
+  if (loading) {
     return (
-      <Card>
+      <Card className="card-custom">
         <CardHeader>
-          <CardTitle>Status Pesanan</CardTitle>
+          <CardTitle className="text-h4 text-primary">
+            Status Pesanan
+          </CardTitle>{" "}
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500 text-center py-8">Belum ada pesanan</p>
+          <div className="animate-pulse h-64 bg-muted rounded"></div>{" "}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="card-custom">
+        <CardHeader>
+          <CardTitle className="text-h4 text-primary">Status Pesanan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-8 text-body">
+            Belum ada pesanan
+          </p>{" "}
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="card-custom">
       <CardHeader>
-        <CardTitle>Status Pesanan</CardTitle>
+        <CardTitle className="text-h4 text-primary">Status Pesanan</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -95,14 +117,14 @@ export default function OrderStatusChart({
               nameKey="name"
               cx="50%"
               cy="50%"
-              outerRadius={80}
+              outerRadius={window.innerWidth < 640 ? 60 : 80}
               label={renderLabel}
               labelLine={false}
             >
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={STATUS_COLORS[entry.status] || "#94a3b8"}
+                  fill={STATUS_COLORS[entry.status] || "var(--muted)"}
                 />
               ))}
             </Pie>

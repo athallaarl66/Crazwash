@@ -1,8 +1,15 @@
 // app/admin/dashboard/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { Calendar, Wallet, ShoppingBag, Users, TrendingUp } from "lucide-react";
+import { useEffect, useState, Suspense, lazy } from "react";
+import {
+  Calendar,
+  Wallet,
+  ShoppingBag,
+  Users,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,13 +19,17 @@ import {
 } from "@/components/ui/select";
 
 import StatCard from "./components/StatsCard";
-import RevenueChart from "./components/RevenueChart";
-import OrderStatusChart from "./components/OrderStatusChart";
 import TopProducts from "./components/TopProductsTable";
 import RevenueBreakdown from "./components/Revenuebreakdown";
 import CustomerStats from "./components/Customerstats";
 import CategoryBreakdown from "./components/Categorybreakdown";
 import SectionHeader from "./components/SectionHeader";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+// Lazy load heavy charts
+const RevenueChart = lazy(() => import("./components/RevenueChart"));
+const OrderStatusChart = lazy(() => import("./components/OrderStatusChart"));
 
 interface DashboardData {
   kpis: {
@@ -60,6 +71,7 @@ interface DashboardData {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState("30d");
 
   useEffect(() => {
@@ -68,10 +80,17 @@ export default function DashboardPage() {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/dashboard?range=${range}`);
-    const json = await res.json();
-    setData(json);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/dashboard?range=${range}`);
+      if (!res.ok) throw new Error("Failed to load data");
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatCurrency = (v: number) =>
@@ -81,26 +100,69 @@ export default function DashboardPage() {
       minimumFractionDigits: 0,
     }).format(v);
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        Loading dashboard…
+      <div className="container-custom py-8 space-y-8">
+        {/* Skeleton untuk header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-40" />
+        </div>
+        {/* Skeleton untuk KPI cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+        {/* Skeleton untuk charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+        {/* Skeleton untuk lainnya */}
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container-custom py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading dashboard: {error}.{" "}
+            <button onClick={load} className="underline">
+              Retry
+            </button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!data)
+    return (
+      <div className="container-custom py-8 text-muted-foreground">
+        Data kosong
       </div>
     );
 
-  if (!data) return <div className="p-8">Data kosong</div>;
-
   return (
-    <div className="p-8 space-y-8">
+    <div className="container-custom py-8 space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard Admin</h1>
-          <p className="text-gray-500">Analisis Bisnis Cuci Sepatu</p>
+          <h1 className="text-h2 text-primary">Dashboard Admin</h1>
+          <p className="text-muted-foreground">Analisis Bisnis Cuci Sepatu</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-gray-500" />
+          <Calendar className="h-5 w-5 text-muted-foreground" />
           <Select value={range} onValueChange={setRange}>
             <SelectTrigger className="w-[160px]">
               <SelectValue />
@@ -155,11 +217,15 @@ export default function DashboardPage() {
 
       {/* REVENUE & STATUS CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart
-          data={data.charts.revenueTrends}
-          formatCurrency={formatCurrency}
-        />
-        <OrderStatusChart data={data.charts.statusDistribution} />
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <RevenueChart
+            data={data.charts.revenueTrends}
+            formatCurrency={formatCurrency}
+          />
+        </Suspense>
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <OrderStatusChart data={data.charts.statusDistribution} />
+        </Suspense>
       </div>
 
       {/* REVENUE BREAKDOWN & CUSTOMER STATS */}

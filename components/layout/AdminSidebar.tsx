@@ -1,3 +1,4 @@
+// components/layout/AdminSidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 const menuItems = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -49,13 +51,17 @@ export function AdminSidebar({
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await signOut({ callbackUrl: "/auth/login" });
+    try {
+      await signOut({ callbackUrl: "/auth/login" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   const SidebarContent = () => (
     <>
-      {/* LOGO */}
-      <div className="flex h-16 items-center border-b px-6 justify-between">
+      <div className="flex h-16 items-center border-b border-border px-6 justify-between bg-card">
         <Link href="/admin/dashboard" className="flex items-center space-x-2">
           <Image
             src="/crazwash.svg"
@@ -63,19 +69,19 @@ export function AdminSidebar({
             width={62}
             height={62}
           />
-          <span className="text-lg font-bold">Admin Panel</span>
+          <span className="text-h5 text-card-foreground">Admin Panel</span>
         </Link>
 
         <button
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors"
+          aria-label="Close menu"
         >
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5 text-muted-foreground" />
         </button>
       </div>
 
-      {/* NAV */}
-      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+      <nav className="flex-1 space-y-1 p-4 overflow-y-auto bg-card">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -85,10 +91,10 @@ export function AdminSidebar({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                "flex items-center space-x-3 px-3 py-2 rounded-lg text-body font-medium transition-all duration-200 cursor-pointer",
                 isActive
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100",
+                  ? "bg-primary/10 text-primary shadow-soft"
+                  : "text-card-foreground hover:bg-muted hover:text-primary",
               )}
             >
               <Icon className="h-5 w-5" />
@@ -98,13 +104,12 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* ACTIONS */}
-      <div className="border-t p-4 space-y-2">
+      <div className="border-t border-border p-4 space-y-2 bg-card">
         <Link href="/" target="_blank">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start cursor-pointer"
+            className="w-full justify-start cursor-pointer text-card-foreground hover:bg-muted hover:text-primary"
           >
             <LayoutDashboard className="h-4 w-4 mr-2" />
             Public Site
@@ -116,9 +121,13 @@ export function AdminSidebar({
           size="sm"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="w-full justify-start cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="w-full justify-start cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          {isLoggingOut ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4 mr-2" />
+          )}
           {isLoggingOut ? "Logging out..." : "Logout"}
         </Button>
       </div>
@@ -127,17 +136,15 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Desktop */}
-      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white flex-col">
+      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-card flex-col shadow-soft">
         <SidebarContent />
       </aside>
 
-      {/* Mobile */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              className="fixed inset-0 z-40 bg-foreground/50 backdrop-blur-sm lg:hidden"
               onClick={() => setIsMobileOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -145,7 +152,7 @@ export function AdminSidebar({
             />
 
             <motion.aside
-              className="fixed left-0 top-0 z-50 h-screen w-64 border-r bg-white flex flex-col lg:hidden shadow-xl"
+              className="fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card flex flex-col lg:hidden shadow-soft-lg"
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}

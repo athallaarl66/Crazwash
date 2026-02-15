@@ -31,30 +31,30 @@ export default function OrdersTable({
   const router = useRouter();
 
   return (
-    <div className="rounded-lg border overflow-hidden shadow-sm">
+    <div className="rounded-lg border overflow-hidden shadow-soft">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-gray-50">
+          <TableHeader className="bg-muted">
             <TableRow>
-              <TableHead className="font-semibold text-gray-700">
+              <TableHead className="font-semibold text-foreground">
                 Order ID
               </TableHead>
-              <TableHead className="font-semibold text-gray-700">
+              <TableHead className="font-semibold text-foreground">
                 Customer
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 hidden md:table-cell">
+              <TableHead className="font-semibold text-foreground hidden md:table-cell">
                 Tanggal
               </TableHead>
-              <TableHead className="font-semibold text-gray-700">
+              <TableHead className="font-semibold text-foreground">
                 Payment
               </TableHead>
-              <TableHead className="font-semibold text-gray-700">
+              <TableHead className="font-semibold text-foreground">
                 Status
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 hidden md:table-cell">
+              <TableHead className="font-semibold text-foreground hidden md:table-cell">
                 Total
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 text-right">
+              <TableHead className="font-semibold text-foreground text-right">
                 Actions
               </TableHead>
             </TableRow>
@@ -63,10 +63,10 @@ export default function OrdersTable({
             {orders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12">
-                  <div className="flex flex-col items-center justify-center text-gray-400">
-                    <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
                       <svg
-                        className="h-6 w-6 text-gray-300"
+                        className="h-6 w-6 text-muted-foreground"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -79,8 +79,10 @@ export default function OrdersTable({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500">No orders found</p>
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="font-medium text-muted-foreground">
+                      No orders found
+                    </p>
+                    <p className="text-body-sm text-muted-foreground mt-1">
                       Try adjusting your filters
                     </p>
                   </div>
@@ -90,34 +92,34 @@ export default function OrdersTable({
               orders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="hover:bg-gray-50 border-b last:border-0"
+                  className="hover:bg-muted/50 border-b last:border-0"
                 >
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-foreground">
                         {order.orderNumber}
                       </span>
-                      <span className="text-xs text-gray-500 mt-0.5">
+                      <span className="text-caption text-muted-foreground mt-0.5">
                         ID: {order.id}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-foreground">
                         {order.customer?.name ?? order.customerName}
                       </span>
-                      <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                      <span className="text-caption text-muted-foreground truncate max-w-[150px]">
                         {order.customer?.email ??
                           order.customerEmail ??
                           "No email"}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-caption text-muted-foreground">
                         {order.customerPhone}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-gray-600">
+                  <TableCell className="hidden md:table-cell text-muted-foreground">
                     {formatDate(order.createdAt)}
                   </TableCell>
                   <TableCell>
@@ -133,10 +135,10 @@ export default function OrdersTable({
                     />
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="font-semibold text-gray-900">
+                    <div className="font-semibold text-foreground">
                       {formatCurrency(order.totalPrice)}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-caption text-muted-foreground">
                       {order.services.length} service(s)
                     </div>
                   </TableCell>
@@ -146,7 +148,7 @@ export default function OrdersTable({
                         variant="ghost"
                         size="sm"
                         onClick={() => router.push(`/admin/orders/${order.id}`)}
-                        className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
@@ -156,7 +158,7 @@ export default function OrdersTable({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
@@ -183,7 +185,7 @@ export default function OrdersTable({
                             <ExternalLink className="h-3.5 w-3.5 mr-2" />
                             Open in New Tab
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600 cursor-pointer">
+                          <DropdownMenuItem className="text-destructive cursor-pointer">
                             Cancel Order
                           </DropdownMenuItem>
                         </DropdownMenuContent>

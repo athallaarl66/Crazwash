@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,11 +41,15 @@ interface Product {
 interface ProductsTableProps {
   products: Product[];
   onRefresh?: () => void;
+  selected?: number[];
+  setSelected?: (ids: number[]) => void;
 }
 
 export default function ProductsTable({
   products,
   onRefresh,
+  selected = [],
+  setSelected,
 }: ProductsTableProps) {
   const router = useRouter();
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -55,108 +60,180 @@ export default function ProductsTable({
 
   const handleDelete = async () => {
     if (!deleteDialog.productId) return;
-
     try {
-      const response = await fetch(
-        `/api/admin/service/${deleteDialog.productId}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      if (response.ok) {
-        if (onRefresh) onRefresh();
+      const res = await fetch(`/api/admin/service/${deleteDialog.productId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        onRefresh?.();
         setDeleteDialog({ open: false, productId: null, productName: "" });
-        router.refresh();
       } else {
-        const error = await response.json();
-        alert(error.error || "Gagal menghapus");
+        alert("Gagal hapus");
       }
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("Terjadi kesalahan");
+    } catch {
+      alert("Error");
     }
   };
 
-  const handleToggleStatus = async (
-    productId: number,
-    currentStatus: boolean,
-  ) => {
+  const handleToggleStatus = async (id: number, status: boolean) => {
     try {
-      const response = await fetch(`/api/admin/service/${productId}`, {
+      const res = await fetch(`/api/admin/service/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !currentStatus }),
+        body: JSON.stringify({ isActive: !status }),
       });
+      if (res.ok) onRefresh?.();
+      else alert("Gagal ubah status");
+    } catch {
+      alert("Error");
+    }
+  };
 
-      if (response.ok) {
-        if (onRefresh) onRefresh();
-        router.refresh();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Gagal mengubah status");
-      }
-    } catch (error) {
-      console.error("Toggle status error:", error);
-      alert("Terjadi kesalahan");
+  const handleSelectAll = (checked: boolean) => {
+    setSelected?.(checked ? products.map((p) => p.id) : []);
+  };
+
+  const handleSelect = (id: number, checked: boolean) => {
+    setSelected?.(
+      checked ? [...selected, id] : selected.filter((s) => s !== id),
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selected.length || !confirm("Hapus yang dipilih?")) return;
+    try {
+      await fetch("/api/admin/service/bulk-delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selected }),
+      });
+      onRefresh?.();
+      setSelected?.([]);
+    } catch {
+      alert("Error bulk delete");
     }
   };
 
   return (
     <>
-      <div className="rounded-lg border overflow-hidden">
+      {selected.length > 0 && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-body-sm text-muted-foreground">
+            {selected.length} dipilih
+          </span>
+          <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+            Hapus
+          </Button>
+        </div>
+      )}
+
+      <div className="rounded-lg border overflow-x-auto">
+        {" "}
+        {/* Mobile scroll */}
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-muted">
+            {" "}
+            {/* Pakai bg-muted */}
             <tr>
-              <th className="text-left p-3 font-medium">Nama Layanan</th>
-              <th className="text-left p-3 font-medium">Kategori</th>
-              <th className="text-left p-3 font-medium">Harga</th>
-              <th className="text-left p-3 font-medium">Durasi</th>
-              <th className="text-left p-3 font-medium">Status</th>
-              <th className="text-left p-3 font-medium">Dibuat</th>
-              <th className="text-right p-3 font-medium">Aksi</th>
+              {setSelected && (
+                <th className="p-3">
+                  <Checkbox
+                    checked={
+                      selected.length === products.length && products.length > 0
+                    }
+                    onCheckedChange={handleSelectAll}
+                  />
+                </th>
+              )}
+              <th className="text-left p-3 font-medium text-foreground">
+                Nama Layanan
+              </th>{" "}
+              {/* Pakai text-foreground */}
+              <th className="text-left p-3 font-medium text-foreground">
+                Kategori
+              </th>
+              <th className="text-left p-3 font-medium text-foreground">
+                Harga
+              </th>
+              <th className="text-left p-3 font-medium text-foreground">
+                Durasi
+              </th>
+              <th className="text-left p-3 font-medium text-foreground">
+                Status
+              </th>
+              <th className="text-left p-3 font-medium text-foreground">
+                Dibuat
+              </th>
+              <th className="text-right p-3 font-medium text-foreground">
+                Aksi
+              </th>
             </tr>
           </thead>
           <tbody>
             {products.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-gray-500">
+                <td
+                  colSpan={setSelected ? 8 : 7}
+                  className="p-8 text-center text-muted-foreground text-body"
+                >
+                  {" "}
+                  {/* Pakai text-muted-foreground, text-body */}
                   Tidak ada layanan
                 </td>
               </tr>
             ) : (
               products.map((product) => (
-                <tr key={product.id} className="border-t hover:bg-gray-50">
+                <tr key={product.id} className="border-t hover:bg-muted/50">
+                  {" "}
+                  {/* Pakai bg-muted/50 */}
+                  {setSelected && (
+                    <td className="p-3">
+                      <Checkbox
+                        checked={selected.includes(product.id)}
+                        onCheckedChange={(checked) =>
+                          handleSelect(product.id, !!checked)
+                        }
+                      />
+                    </td>
+                  )}
                   <td className="p-3">
-                    <div className="font-medium">{product.name}</div>
+                    <div className="font-medium text-foreground">
+                      {product.name}
+                    </div>
                     {product.description && (
-                      <div className="text-xs text-gray-500 truncate max-w-xs">
+                      <div className="text-caption text-muted-foreground truncate max-w-xs">
+                        {" "}
+                        {/* Pakai text-caption */}
                         {product.description}
                       </div>
                     )}
                   </td>
                   <td className="p-3">
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="border-border">
+                      {" "}
+                      {/* Pakai border-border */}
                       {CATEGORY_LABELS[product.category]}
                     </Badge>
                   </td>
-                  <td className="p-3 font-medium">
+                  <td className="p-3 font-medium text-foreground">
                     {formatCurrency(parseFloat(product.price))}
                   </td>
-                  <td className="p-3">{product.duration} hari</td>
+                  <td className="p-3 text-foreground">
+                    {product.duration} hari
+                  </td>
                   <td className="p-3">
                     <Badge
                       variant={product.isActive ? "default" : "secondary"}
                       className={
                         product.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
+                          ? "bg-success text-success-foreground"
+                          : "bg-muted text-muted-foreground"
                       }
                     >
                       {product.isActive ? "Aktif" : "Nonaktif"}
                     </Badge>
                   </td>
-                  <td className="p-3 text-gray-500">
+                  <td className="p-3 text-muted-foreground">
                     {formatDate(product.createdAt)}
                   </td>
                   <td className="p-3 text-right">
@@ -193,7 +270,7 @@ export default function ProductsTable({
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-red-600"
+                          className="text-destructive"
                           onClick={() =>
                             setDeleteDialog({
                               open: true,
@@ -215,7 +292,6 @@ export default function ProductsTable({
         </table>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
@@ -224,15 +300,14 @@ export default function ProductsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Layanan</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus "{deleteDialog.productName}"?
-              Tindakan ini tidak dapat dibatalkan.
+              Yakin hapus "{deleteDialog.productName}"? Gak bisa balik.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               Hapus
             </AlertDialogAction>

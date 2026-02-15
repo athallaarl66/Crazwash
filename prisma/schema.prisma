@@ -12,15 +12,15 @@ datasource db {
 //////////////////////////////////////////////////////
 
 model User {
-  id        Int    @id @default(autoincrement())
-  email     String @unique
-  password  String
-  name      String
-  role      Role   @default(CUSTOMER)
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  name     String
+  role     Role   @default(CUSTOMER)
 
-  phone     String?
-  address   String?
-  city      String? @default("Bandung")
+  phone   String?
+  address String?
+  city    String? @default("Bandung")
 
   isActive          Boolean   @default(true)
   lastLogin         DateTime?
@@ -36,10 +36,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders    Order[]
-  accounts  Account[]
-  sessions  Session[]
-  auditLogs AuditLog[]
+  orders        Order[]
+  accounts      Account[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 }
 
 enum Role {
@@ -94,23 +95,23 @@ model VerificationToken {
 //////////////////////////////////////////////////////
 
 model AuditLog {
-  id        Int         @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   userId    Int?
-  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
   userEmail String
   userRole  Role
 
-  action    AuditAction
-  entity    String
-  entityId  String?
+  action   AuditAction
+  entity   String
+  entityId String?
 
-  changes   Json?
-  metadata  Json?
+  changes  Json?
+  metadata Json?
 
   ipAddress String?
   userAgent String?
-  timestamp DateTime    @default(now())
+  timestamp DateTime @default(now())
 
   @@index([userId])
   @@index([action])
@@ -153,33 +154,33 @@ enum ProductCategory {
 }
 
 model Product {
-  id           Int       @id @default(autoincrement())
-  name         String
-  slug         String    @unique
-  description  String?
+  id          Int     @id @default(autoincrement())
+  name        String
+  slug        String  @unique
+  description String?
 
-  price        Decimal   @db.Decimal(10,2)
-  comparePrice Decimal?  @db.Decimal(10,2)
+  price        Decimal  @db.Decimal(10, 2)
+  comparePrice Decimal? @db.Decimal(10, 2)
 
-  category     ProductCategory
-  duration     Int
+  category ProductCategory
+  duration Int
 
-  isActive     Boolean   @default(true)
-  isFeatured   Boolean   @default(false)
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
 
-  badge        String?
-  sortOrder    Int       @default(0)
+  badge     String?
+  sortOrder Int     @default(0)
 
-  thumbnail    String?
+  thumbnail String?
 
-  deletedAt    DateTime?
-  deletedBy    Int?
+  deletedAt DateTime?
+  deletedBy Int?
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  orderItems   OrderService[]
-  images       ProductImage[]
+  orderItems OrderService[]
+  images     ProductImage[]
 
   @@index([isActive])
   @@index([category])
@@ -187,14 +188,14 @@ model Product {
 }
 
 model ProductImage {
-  id        Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   productId Int
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   imageUrl  String
-  isPrimary Boolean  @default(false)
-  sortOrder Int      @default(0)
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
 
   createdAt DateTime @default(now())
 
@@ -206,17 +207,17 @@ model ProductImage {
 //////////////////////////////////////////////////////
 
 model Order {
-  id            Int           @id @default(autoincrement())
-  orderNumber   String        @unique
+  id          Int    @id @default(autoincrement())
+  orderNumber String @unique
 
-  customerId    Int?
-  customer      User?         @relation(fields: [customerId], references: [id])
+  customerId Int?
+  customer   User? @relation(fields: [customerId], references: [id])
 
   customerName  String
   customerPhone String
   customerEmail String?
 
-  totalPrice    Decimal       @db.Decimal(10,2)
+  totalPrice Decimal @db.Decimal(10, 2)
 
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
@@ -228,17 +229,17 @@ model Order {
   deliveryDate  DateTime?
   completedDate DateTime?
 
-  address       String
-  city          String        @default("Bandung")
-  notes         String?
-  adminNotes    String?
+  address    String
+  city       String  @default("Bandung")
+  notes      String?
+  adminNotes String?
 
-  statusHistory Json[]        @default([])
+  statusHistory Json[] @default([])
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  services      OrderService[]
+  services OrderService[]
 
   @@index([orderNumber])
   @@index([status])
@@ -266,19 +267,40 @@ enum PaymentStatus {
 //////////////////////////////////////////////////////
 
 model OrderService {
-  id        Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   shoesQty  Int
-  unitPrice Decimal  @db.Decimal(10,2)
-  subtotal  Decimal  @db.Decimal(10,2)
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
 
   @@unique([orderId, productId])
+}
+
+//////////////////////////////////////////////////////
+// NOTIFICATION
+//////////////////////////////////////////////////////
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  type      String? // e.g., "order", "payment" untuk filter
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int // Relasi ke User (admin)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }

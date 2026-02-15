@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -10,14 +11,14 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Crazwash - Cuci Sepatu & Tas Premium Bandung",
+  title: "Crazwash - Cuci Sepatu & Tas  Bandung",
   description:
     "Jasa cuci sepatu dan tas profesional di Bandung Timur. Deep clean, leather care, suede care, dengan layanan pickup delivery gratis area tertentu.",
   keywords:
     "cuci sepatu bandung, cuci tas, deep clean sepatu, leather care, suede care, jasa cuci sepatu bandung timur",
   authors: [{ name: "Crazwash" }],
   openGraph: {
-    title: "Crazwash - Cuci Sepatu & Tas Premium Bandung",
+    title: "Crazwash - Cuci Sepatu & Tas  Bandung",
     description:
       "Bikin sepatu & tas kembali seperti baru. Deep clean profesional + pickup delivery terpercaya.",
     url: "https://crazwash.vercel.app",

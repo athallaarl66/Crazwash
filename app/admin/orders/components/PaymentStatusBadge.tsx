@@ -1,4 +1,4 @@
-// app/(admin)/orders/components/PaymentStatusBadge.tsx - FIXED FOR CURRENT SCHEMA
+// app/admin/orders/components/PaymentStatusBadge.tsx
 "use client";
 
 import { useTransition } from "react";
@@ -10,11 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePaymentStatusAction } from "@/app/admin/orders/action";
+import { updatePaymentStatusAction } from "../action";
 import { PAYMENT_STATUS_LABELS, PAYMENT_STATUS_COLORS } from "@/lib/constants";
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 
-// ✅ SESUAIKAN DENGAN SCHEMA SEKARANG (hanya 3 values)
 const PAYMENT_FLOW: Record<PaymentStatus, PaymentStatus[]> = {
   UNPAID: ["PAID", "REFUNDED"],
   PAID: ["REFUNDED"],
@@ -48,11 +48,18 @@ export default function PaymentStatusBadge({ orderId, status }: Props) {
     <Select value={current} onValueChange={onChange} disabled={isPending}>
       <SelectTrigger
         className={clsx(
-          "h-8 w-[140px] text-xs border",
+          "h-8 w-[140px] sm:w-[160px] text-caption border",
           PAYMENT_STATUS_COLORS[current],
         )}
       >
-        <SelectValue>{PAYMENT_STATUS_LABELS[current]}</SelectValue>
+        {isPending ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Updating...
+          </div>
+        ) : (
+          <SelectValue>{PAYMENT_STATUS_LABELS[current]}</SelectValue>
+        )}
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={current} disabled>

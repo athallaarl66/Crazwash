@@ -6,9 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
-/**
- * Update order status
- */
 export async function updateOrderStatusAction(
   orderId: number,
   status: OrderStatus,
@@ -24,9 +21,6 @@ export async function updateOrderStatusAction(
   }
 }
 
-/**
- * Update payment status
- */
 export async function updatePaymentStatusAction(
   orderId: number,
   status: PaymentStatus,
@@ -46,37 +40,22 @@ export async function updatePaymentStatusAction(
   }
 }
 
-/**
- * Cancel order
- */
 export async function cancelOrderAction(orderId: number) {
   return updateOrderStatusAction(orderId, "CANCELLED");
 }
 
-/**
- * Confirm order
- */
 export async function confirmOrderAction(orderId: number) {
   return updateOrderStatusAction(orderId, "CONFIRMED");
 }
 
-/**
- * Complete order
- */
 export async function completeOrderAction(orderId: number) {
   return updateOrderStatusAction(orderId, "COMPLETED");
 }
 
-/**
- * Mark order as paid
- */
 export async function markAsPaidAction(orderId: number) {
   return updatePaymentStatusAction(orderId, "PAID");
 }
 
-/**
- * Mark order as unpaid
- */
 export async function markAsUnpaidAction(orderId: number) {
   return updatePaymentStatusAction(orderId, "UNPAID");
 }
