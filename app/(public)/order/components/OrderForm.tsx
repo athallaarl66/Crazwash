@@ -42,6 +42,7 @@ function OrderForm({ products }: OrderFormProps) {
     paymentMethod: "",
   });
 
+  // ==================== HANDLERS ====================
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities((prev) => {
       const current = prev[productId] || 0;
@@ -65,7 +66,7 @@ function OrderForm({ products }: OrderFormProps) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // ✅ FIXED: Force boolean return type
+  // ==================== VALIDATION ====================
   const canProceed = (): boolean => {
     if (currentStep === 1) return Object.keys(quantities).length > 0;
     if (currentStep === 2)
@@ -75,33 +76,42 @@ function OrderForm({ products }: OrderFormProps) {
     return false;
   };
 
+  // ==================== SUBMIT ====================
   async function handleSubmit() {
     setLoading(true);
     setError("");
 
-    const form = new FormData();
-    Object.entries(formData).forEach(([key, value]) => form.append(key, value));
-    Object.entries(quantities).forEach(([productId, quantity]) => {
-      form.append("productId[]", productId);
-      form.append("shoesQty[]", quantity.toString());
-    });
-
-    const result = await createOrderAction(form);
-
-    if (result.success) {
-      const params = new URLSearchParams({
-        orderNumber: result.orderNumber || "",
-        customerName: result.customerName || formData.customerName,
-        totalPrice: result.totalPrice?.toString() || "0",
-        paymentMethod: result.paymentMethod || formData.paymentMethod,
+    try {
+      const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) =>
+        form.append(key, value),
+      );
+      Object.entries(quantities).forEach(([productId, quantity]) => {
+        form.append("productId[]", productId);
+        form.append("shoesQty[]", quantity.toString());
       });
-      router.push(`/order/success?${params.toString()}`);
-    } else {
-      setError(result.error || "Terjadi kesalahan");
+
+      const result = await createOrderAction(form);
+
+      if (result.success) {
+        const params = new URLSearchParams({
+          orderNumber: result.orderNumber || "",
+          customerName: result.customerName || formData.customerName,
+          totalPrice: result.totalPrice?.toString() || "0",
+          paymentMethod: result.paymentMethod || formData.paymentMethod,
+        });
+        router.push(`/order/success?${params.toString()}`);
+      } else {
+        setError(result.error || "Terjadi kesalahan saat membuat pesanan");
+        setLoading(false);
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.");
       setLoading(false);
     }
   }
 
+  // ==================== CART DATA ====================
   const cartItems = products
     .filter((p) => quantities[p.id])
     .map((p) => ({
@@ -117,15 +127,20 @@ function OrderForm({ products }: OrderFormProps) {
     0,
   );
 
+  // ==================== RENDER ====================
   return (
     <div className="space-y-6 pb-32 lg:pb-6">
+      {/* Progress Steps */}
       <ProgressSteps currentStep={currentStep} />
 
+      {/* Main Grid */}
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Form Steps (Left/Main Column) */}
         <div className="lg:col-span-2">
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <Step1ServiceSelection
+                key="step1"
                 products={products}
                 quantities={quantities}
                 onQuantityChange={updateQuantity}
@@ -136,6 +151,7 @@ function OrderForm({ products }: OrderFormProps) {
 
             {currentStep === 2 && (
               <Step2CustomerInfo
+                key="step2"
                 formData={formData}
                 onChange={handleInputChange}
                 onBack={() => setCurrentStep(1)}
@@ -146,6 +162,7 @@ function OrderForm({ products }: OrderFormProps) {
 
             {currentStep === 3 && (
               <Step3PickupInfo
+                key="step3"
                 formData={formData}
                 onChange={handleInputChange}
                 onBack={() => setCurrentStep(2)}
@@ -156,6 +173,7 @@ function OrderForm({ products }: OrderFormProps) {
 
             {currentStep === 4 && (
               <Step4Payment
+                key="step4"
                 paymentMethod={formData.paymentMethod}
                 onPaymentMethodChange={(value) =>
                   setFormData((prev) => ({ ...prev, paymentMethod: value }))
@@ -170,6 +188,7 @@ function OrderForm({ products }: OrderFormProps) {
           </AnimatePresence>
         </div>
 
+        {/* Cart Summary (Right Sidebar - Desktop Only) */}
         <div className="hidden lg:block">
           <CartSummary
             items={cartItems}
@@ -182,6 +201,7 @@ function OrderForm({ products }: OrderFormProps) {
         </div>
       </div>
 
+      {/* Mobile Cart Sheet */}
       <MobileCartSheet
         items={cartItems}
         totalPrice={totalPrice}

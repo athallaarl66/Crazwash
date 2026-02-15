@@ -2,8 +2,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { CheckCircle2, Minus, Plus } from "lucide-react";
 
@@ -20,11 +18,30 @@ interface ProductCardProps {
   index: number;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  BASIC: "bg-blue-500",
-  PREMIUM: "bg-purple-500",
-  DEEP: "bg-orange-500",
-  TREATMENT: "bg-green-500",
+const CATEGORY_CONFIG: Record<
+  string,
+  { color: string; bgColor: string; label: string }
+> = {
+  BASIC: {
+    color: "text-info",
+    bgColor: "bg-info",
+    label: "B",
+  },
+  PREMIUM: {
+    color: "text-accent",
+    bgColor: "bg-accent",
+    label: "P",
+  },
+  DEEP: {
+    color: "text-warning",
+    bgColor: "bg-warning",
+    label: "D",
+  },
+  TREATMENT: {
+    color: "text-success",
+    bgColor: "bg-success",
+    label: "T",
+  },
 };
 
 function ProductCard({
@@ -34,6 +51,8 @@ function ProductCard({
   index,
 }: ProductCardProps) {
   const isSelected = quantity > 0;
+  const categoryConfig =
+    CATEGORY_CONFIG[product.category] || CATEGORY_CONFIG.BASIC;
 
   return (
     <motion.div
@@ -44,18 +63,19 @@ function ProductCard({
         relative p-4 rounded-2xl transition-all duration-300
         ${
           isSelected
-            ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-400 shadow-lg"
-            : "bg-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-md"
+            ? "bg-gradient-to-br from-primary/5 to-accent/10 border-2 border-primary shadow-soft-lg"
+            : "bg-card border-2 border-border hover:border-primary/40 hover:shadow-soft card-custom"
         }
       `}
     >
       {/* Category Badge */}
       <div className="absolute -top-2 -left-2">
         <div
-          className={`${CATEGORY_COLORS[product.category]} h-8 w-8 rounded-full flex items-center justify-center shadow-lg`}
+          className={`${categoryConfig.bgColor} h-8 w-8 rounded-full flex items-center justify-center`}
+          style={{ boxShadow: "var(--shadow-md)" }}
         >
           <span className="text-white text-xs font-bold">
-            {product.category[0]}
+            {categoryConfig.label}
           </span>
         </div>
       </div>
@@ -67,7 +87,7 @@ function ProductCard({
           animate={{ scale: 1 }}
           className="absolute -top-2 -right-2"
         >
-          <CheckCircle2 className="h-7 w-7 text-green-500 bg-white rounded-full" />
+          <CheckCircle2 className="h-7 w-7 text-success bg-card rounded-full" />
         </motion.div>
       )}
 
@@ -76,54 +96,67 @@ function ProductCard({
         {/* Title & Price */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-base md:text-lg text-gray-900 mb-1">
+            <h3 className="text-h5 text-card-foreground mb-1">
               {product.name}
             </h3>
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="text-body-sm text-muted-foreground line-clamp-2">
               {product.description}
             </p>
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-h4 text-primary">
               {formatCurrency(product.price)}
             </p>
-            <p className="text-xs text-gray-500">per pasang</p>
+            <p className="text-caption text-muted-foreground">per pasang</p>
           </div>
         </div>
 
         {/* Quantity Controls */}
-        <div className="flex items-center justify-between pt-3 border-t-2">
-          <span className="text-sm font-semibold text-gray-700">Jumlah:</span>
+        <div className="flex items-center justify-between pt-3 border-t-2 border-border">
+          <span className="text-body font-semibold text-card-foreground">
+            Jumlah:
+          </span>
           <div className="flex items-center gap-3">
-            <Button
+            {/* Minus Button */}
+            <button
               type="button"
-              size="icon"
-              variant={quantity > 0 ? "default" : "outline"}
               onClick={() => onQuantityChange(product.id, -1)}
               disabled={quantity === 0}
-              className="h-11 w-11 rounded-full shadow-md hover:shadow-lg transition-all"
+              className={`
+                h-11 w-11 rounded-full flex items-center justify-center
+                transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
+                ${
+                  quantity > 0
+                    ? "bg-primary text-primary-foreground hover:opacity-90"
+                    : "bg-muted text-muted-foreground border-2 border-border"
+                }
+              `}
+              style={{ boxShadow: quantity > 0 ? "var(--shadow-md)" : "none" }}
             >
               <Minus className="h-5 w-5" />
-            </Button>
+            </button>
 
+            {/* Quantity Display */}
             <motion.span
               key={quantity}
               initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
-              className="text-2xl font-bold w-10 text-center text-blue-600"
+              className="text-h3 w-10 text-center text-primary font-bold"
             >
               {quantity}
             </motion.span>
 
-            <Button
+            {/* Plus Button */}
+            <button
               type="button"
-              size="icon"
               onClick={() => onQuantityChange(product.id, 1)}
-              className="h-11 w-11 rounded-full shadow-md hover:shadow-lg transition-all
-                       bg-gradient-to-r from-blue-600 to-indigo-600"
+              className="h-11 w-11 rounded-full bg-gradient-to-r from-primary to-accent 
+                       text-primary-foreground flex items-center justify-center
+                       hover:opacity-90 transition-all duration-200"
+              style={{ boxShadow: "var(--shadow-md)" }}
             >
               <Plus className="h-5 w-5" />
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -132,12 +165,13 @@ function ProductCard({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            className="pt-3 border-t-2 flex justify-between items-center bg-blue-100/50 -mx-4 -mb-4 px-4 py-3 rounded-b-xl"
+            className="pt-3 border-t-2 border-border flex justify-between items-center 
+                     bg-primary/5 -mx-4 -mb-4 px-4 py-3 rounded-b-2xl"
           >
-            <span className="text-sm font-semibold text-gray-700">
+            <span className="text-body font-semibold text-card-foreground">
               Subtotal:
             </span>
-            <span className="text-xl font-bold text-blue-600">
+            <span className="text-h4 text-primary font-bold">
               {formatCurrency(product.price * quantity)}
             </span>
           </motion.div>

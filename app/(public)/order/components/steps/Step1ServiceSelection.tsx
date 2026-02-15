@@ -32,22 +32,29 @@ interface Step1Props {
   canProceed: boolean;
 }
 
+// ============================================
+// MAPPING: Database Category → Display Info
+// ============================================
+// Ini sesuai dengan price list yang real
+
 const CATEGORY_CONFIG = {
   BASIC: {
-    label: "Basic",
-    description: "Cuci standar sepatu & aksesoris",
+    label: "Cleaning Services",
+    description:
+      "Standard cleaning untuk sepatu, sandal, flatshoes, kids shoes",
   },
   PREMIUM: {
-    label: "Premium",
-    description: "Layanan premium & express",
+    label: "Premium Cleaning",
+    description: "Fast cleaning & premium treatment",
   },
   DEEP: {
     label: "Deep Clean",
-    description: "Pembersihan mendalam",
+    description: "Pembersihan mendalam untuk hasil maksimal",
   },
   TREATMENT: {
-    label: "Treatment",
-    description: "Perawatan & perbaikan khusus",
+    label: "Special Treatment",
+    description:
+      "Reglue, Repaint (Midsole/Upper), Unyellow - harga include deep clean",
   },
 };
 
@@ -78,10 +85,12 @@ function Step1ServiceSelection({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="shadow-lg">
+      <Card className="border-2 border-border bg-card text-card-foreground shadow-soft-lg">
         <CardHeader>
-          <CardTitle className="text-xl md:text-2xl">Pilih Layanan</CardTitle>
-          <CardDescription className="text-sm">
+          <CardTitle className="text-h3 text-card-foreground">
+            Pilih Layanan
+          </CardTitle>
+          <CardDescription className="text-body text-muted-foreground">
             Pilih kategori, lalu tambahkan layanan yang dibutuhkan
           </CardDescription>
         </CardHeader>
@@ -102,9 +111,11 @@ function Step1ServiceSelection({
                 className="space-y-4 mt-0"
               >
                 {/* Category Description */}
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-                  <p className="text-sm text-gray-700">
-                    <strong className="text-blue-900">{config.label}:</strong>{" "}
+                <div className="p-4 bg-gradient-to-r from-primary/5 to-accent/10 rounded-xl border-2 border-primary/20">
+                  <p className="text-body text-card-foreground">
+                    <strong className="text-primary font-bold">
+                      {config.label}:
+                    </strong>{" "}
                     {config.description}
                   </p>
                 </div>
@@ -123,8 +134,10 @@ function Step1ServiceSelection({
 
                   {(!productsByCategory[category] ||
                     productsByCategory[category].length === 0) && (
-                    <div className="text-center py-12 text-gray-400">
-                      <p>Tidak ada layanan di kategori ini</p>
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p className="text-body">
+                        Tidak ada layanan di kategori ini
+                      </p>
                     </div>
                   )}
                 </div>
@@ -139,8 +152,9 @@ function Step1ServiceSelection({
               onClick={onNext}
               disabled={!canProceed}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 
-                       hover:to-indigo-700 shadow-lg"
+              className="bg-gradient-to-r from-primary to-accent text-primary-foreground 
+                       hover:opacity-90 transition-opacity shadow-soft-lg
+                       disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Selanjutnya
               <ArrowRight className="ml-2 h-5 w-5" />
