@@ -63,20 +63,20 @@ function OrderFormSkeleton() {
       </div>
 
       {/* Progress Steps Skeleton */}
-      <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between max-w-2xl mx-auto gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-muted" />
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted" />
               <div className="h-4 w-16 bg-muted rounded mt-2" />
             </div>
-            {i < 4 && <div className="flex-1 h-1 mx-4 bg-muted" />}
+            {i < 4 && <div className="flex-1 h-1 mx-2 md:mx-4 bg-muted" />}
           </div>
         ))}
       </div>
 
       {/* Content Skeleton */}
-      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card-custom p-6 space-y-3">
@@ -104,7 +104,7 @@ function OrderFormSkeleton() {
 // ==================== ERROR STATE ====================
 function OrderErrorState() {
   return (
-    <div className="container-custom py-12">
+    <div className="container-custom py-8 md:py-12">
       <div className="max-w-md mx-auto text-center card-custom p-8">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <Package className="h-8 w-8 text-destructive" />

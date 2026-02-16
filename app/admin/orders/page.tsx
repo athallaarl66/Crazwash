@@ -9,16 +9,17 @@ import { Plus, Download, BarChart, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type PageProps = {
-  searchParams?: {
+  searchParams: Promise<{
+    // ← UPDATE TYPE KE Promise
     search?: string;
     payment?: PaymentStatus;
     status?: OrderStatus;
     page?: string;
-  };
+  }>;
 };
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
-  const params = searchParams ?? {};
+  const params = await searchParams; // ← AWAIT searchParams
 
   const page = Number(params.page ?? 1);
 
@@ -64,13 +65,11 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   return (
     <div className="container-custom py-8 space-y-6">
-      {" "}
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-h2 text-primary"> Orders Management</h1>
+          <h1 className="text-h2 text-primary">Orders Management</h1>
           <p className="text-muted-foreground mt-1">
-            {" "}
             Kelola semua pesanan dari pelanggan ShoesWash
           </p>
         </div>
@@ -92,14 +91,11 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       {/* QUICK STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="card-custom">
-          {" "}
           <CardContent className="pt-6">
             <p className="text-body-sm font-medium text-muted-foreground">
               Total Orders
-            </p>{" "}
-            <p className="text-2xl font-bold text-primary">
-              {result.total}
-            </p>{" "}
+            </p>
+            <p className="text-2xl font-bold text-primary">{result.total}</p>
           </CardContent>
         </Card>
 
@@ -108,7 +104,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             <p className="text-body-sm font-medium text-muted-foreground">
               Lunas
             </p>
-            <p className="text-2xl font-bold text-success">{paidOrders}</p>{" "}
+            <p className="text-2xl font-bold text-success">{paidOrders}</p>
           </CardContent>
         </Card>
 
@@ -119,26 +115,22 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             </p>
             <p className="text-2xl font-bold text-destructive">
               {unpaidOrders}
-            </p>{" "}
+            </p>
           </CardContent>
         </Card>
       </div>
       {/* MAIN CONTENT */}
       <Card className="card-custom">
-        {" "}
         <CardHeader className="pb-3 border-b border-border">
-          {" "}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-h4">Daftar Pesanan</CardTitle>{" "}
+              <CardTitle className="text-h4">Daftar Pesanan</CardTitle>
               <p className="text-body-sm text-muted-foreground mt-1">
-                {" "}
                 Menampilkan {result.data.length} dari {result.total} pesanan •
                 Revenue: Rp {totalRevenue.toLocaleString("id-ID")}
               </p>
             </div>
             <div className="text-body-sm text-muted-foreground bg-muted px-3 py-1 rounded-md">
-              {" "}
               Page {result.page} of {result.totalPages}
             </div>
           </div>
@@ -147,7 +139,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <Suspense
             fallback={
               <div className="flex justify-center items-center py-12">
-                <div className="animate-pulse h-8 bg-muted rounded w-32"></div>{" "}
+                <div className="animate-pulse h-8 bg-muted rounded w-32"></div>
               </div>
             }
           >

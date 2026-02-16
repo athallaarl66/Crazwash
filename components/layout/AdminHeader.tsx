@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // ← TAMBAH useEffect
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -25,35 +25,36 @@ interface Notification {
   read: boolean;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "Order Baru",
-    message: "Pesanan #ORD-001 telah dibuat.",
-    timestamp: "2 menit lalu",
-    read: false,
-  },
-  {
-    id: "2",
-    title: "Pembayaran Diterima",
-    message: "Pembayaran untuk pesanan #ORD-002 telah dikonfirmasi.",
-    timestamp: "10 menit lalu",
-    read: false,
-  },
-  {
-    id: "3",
-    title: "Layanan Selesai",
-    message: "Layanan untuk pesanan #ORD-003 telah selesai.",
-    timestamp: "1 jam lalu",
-    read: true,
-  },
-];
-
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // ← TAMBAH: FETCH REAL NOTIFICATIONS ON MOUNT
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/admin/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(
+            data.map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              message: n.message,
+              timestamp: new Date(n.createdAt).toLocaleString("id-ID"),
+              read: n.read,
+            })),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,14 +63,44 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+  // ← UPDATE: MARK AS READ WITH API CALL
+  const markAsRead = async (id: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "markAsRead", notificationId: id }),
+      });
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+        );
+      }
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  // ← UPDATE: MARK ALL AS READ WITH API CALL
+  const markAllAsRead = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "markAllAsRead" }),
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      }
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -120,6 +151,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
               size="icon"
               className="relative hover:bg-muted"
               aria-label="Notifications"
+              suppressHydrationWarning
             >
               <Bell className="h-5 w-5 text-card-foreground" />
               {unreadCount > 0 && (
@@ -133,7 +165,12 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-semibold text-foreground">Notifications</h3>
               {unreadCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  disabled={loading}
+                >
                   Mark all read
                 </Button>
               )}

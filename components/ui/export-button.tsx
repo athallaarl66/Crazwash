@@ -1,3 +1,4 @@
+// components/ui/export-button.tsx - UPDATED
 "use client";
 
 import { useState } from "react";
@@ -156,7 +157,12 @@ export default function ExportButton({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={loading}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={loading}
+          suppressHydrationWarning // ← TAMBAH INI
+        >
           <Download className="h-4 w-4 mr-2" />
           {loading ? "Exporting..." : "Export"}
         </Button>

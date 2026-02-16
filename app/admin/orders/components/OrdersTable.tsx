@@ -15,13 +15,7 @@ import OrderStatusBadge from "./OrderStatusBadge";
 import PaymentStatusBadge from "./PaymentStatusBadge";
 import type { OrderWithServices } from "@/lib/orderService";
 import { formatDate, formatCurrency } from "@/lib/utils";
-import { MoreVertical, Eye, ExternalLink } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Eye } from "lucide-react"; // ← REMOVE MoreVertical, ExternalLink, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 
 export default function OrdersTable({
   orders,
@@ -143,54 +137,15 @@ export default function OrdersTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => router.push(`/admin/orders/${order.id}`)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild suppressHydrationWarning>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              navigator.clipboard.writeText(order.orderNumber)
-                            }
-                            className="cursor-pointer"
-                          >
-                            Copy Order ID
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              router.push(`/admin/orders/${order.id}`)
-                            }
-                            className="cursor-pointer"
-                          >
-                            <Eye className="h-3.5 w-3.5 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <ExternalLink className="h-3.5 w-3.5 mr-2" />
-                            Open in New Tab
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive cursor-pointer">
-                            Cancel Order
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push(`/admin/orders/${order.id}`)}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

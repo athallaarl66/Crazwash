@@ -16,7 +16,7 @@ import {
 import { Search, FilterX, Filter } from "lucide-react";
 
 const STATUS_OPTIONS = [
-  { value: "ALL", label: "Semua Status" }, // Ubah undefined ke "ALL" untuk menghindari error
+  { value: "ALL", label: "Semua Status" },
   { value: "PENDING", label: "Menunggu" },
   { value: "CONFIRMED", label: "Dikonfirmasi" },
   { value: "READY", label: "Siap / Diantar" },
@@ -25,7 +25,7 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const PAYMENT_OPTIONS = [
-  { value: "ALL", label: "Semua Pembayaran" }, // Ubah undefined ke "ALL" untuk konsistensi
+  { value: "ALL", label: "Semua Pembayaran" },
   { value: "PAID", label: "Lunas" },
   { value: "UNPAID", label: "Belum Bayar" },
   { value: "REFUNDED", label: "Dikembalikan" },
@@ -42,8 +42,7 @@ export default function OrderFilters() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("page");
 
-    if (!value || value === "ALL")
-      params.delete(key); // Handle "ALL" sebagai clear
+    if (!value || value === "ALL") params.delete(key);
     else params.set(key, value);
 
     router.push(`/admin/orders?${params.toString()}`);
@@ -90,7 +89,9 @@ export default function OrderFilters() {
             value={currentPayment || "ALL"}
             onValueChange={(value) => updateParam("payment", value)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[160px]" suppressHydrationWarning>
+              {" "}
+              {/* ← TAMBAH INI */}
               <SelectValue placeholder="Pembayaran" />
             </SelectTrigger>
             <SelectContent>
@@ -106,7 +107,9 @@ export default function OrderFilters() {
             value={currentStatus || "ALL"}
             onValueChange={(value) => updateParam("status", value)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[160px]" suppressHydrationWarning>
+              {" "}
+              {/* ← TAMBAH INI */}
               <SelectValue placeholder="Status Order" />
             </SelectTrigger>
             <SelectContent>

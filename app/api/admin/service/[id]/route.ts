@@ -1,9 +1,9 @@
+// app/api/admin/service/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import * as productService from "@/lib/productService";
 
-// ✅ GET /api/admin/products/[id] - GET SINGLE PRODUCT
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

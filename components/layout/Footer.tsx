@@ -9,9 +9,9 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-muted">
       <div className="container-custom py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-2">
               <Image
                 src="/crazwash.svg"
@@ -31,7 +31,7 @@ export function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="md:col-span-1">
             <h3 className="font-semibold text-foreground mb-4 text-body">
               Quick Links
             </h3>
@@ -64,7 +64,7 @@ export function Footer() {
           </div>
 
           {/* Layanan */}
-          <div>
+          <div className="md:col-span-1">
             <h3 className="font-semibold text-foreground mb-4 text-body">
               Layanan
             </h3>
@@ -83,7 +83,7 @@ export function Footer() {
           </div>
 
           {/* Contact */}
-          <div>
+          <div className="md:col-span-1">
             <h3 className="font-semibold text-foreground mb-4 text-body">
               Kontak
             </h3>
@@ -101,27 +101,18 @@ export function Footer() {
                   +62 858-6388-4877
                 </a>
               </li>
-              {/* <li className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                <Mail className="h-4 w-4 flex-shrink-0 text-accent" />
-                <a 
-                  href="mailto:info@crazwash.com"
-                  className="hover:text-accent transition-colors"
-                >
-                  info@crazwash.com
-                </a>
-              </li> */}
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-border">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-body-sm text-muted-foreground">
               © {currentYear} Crazwash. All rights reserved.
             </p>
 
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-6">
               <Link
                 href="#"
                 className="text-body-sm text-muted-foreground hover:text-accent transition-colors"

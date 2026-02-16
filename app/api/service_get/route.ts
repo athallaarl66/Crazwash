@@ -1,7 +1,7 @@
+// app/api/service_get/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import * as productService from "@/lib/productService";
 
-// GET /api/products_get - Public endpoint for customers
 export async function GET(req: NextRequest) {
   try {
     const products = await productService.getActiveProducts();

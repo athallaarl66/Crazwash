@@ -86,7 +86,7 @@ function Step1ServiceSelection({
       transition={{ duration: 0.3 }}
     >
       <Card className="border-2 border-border bg-card text-card-foreground shadow-soft-lg">
-        <CardHeader>
+        <CardHeader className="p-4 md:p-6">
           <CardTitle className="text-h3 text-card-foreground">
             Pilih Layanan
           </CardTitle>
@@ -94,7 +94,7 @@ function Step1ServiceSelection({
             Pilih kategori, lalu tambahkan layanan yang dibutuhkan
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6">
           <Tabs
             value={activeCategory}
             onValueChange={setActiveCategory}
@@ -121,7 +121,7 @@ function Step1ServiceSelection({
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid gap-4">
+                <div className="grid gap-4 md:gap-6">
                   {productsByCategory[category]?.map((product, index) => (
                     <ProductCard
                       key={product.id}
@@ -154,7 +154,7 @@ function Step1ServiceSelection({
               size="lg"
               className="bg-gradient-to-r from-primary to-accent text-primary-foreground 
                        hover:opacity-90 transition-opacity shadow-soft-lg
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
             >
               Selanjutnya
               <ArrowRight className="ml-2 h-5 w-5" />

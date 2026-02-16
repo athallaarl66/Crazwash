@@ -34,7 +34,7 @@ export default function ProductsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/products");
+      const res = await fetch("/api/admin/service"); // Fixed: Changed from /api/admin/products to /api/admin/service
       if (res.status === 401) {
         setError("Session expired");
         setTimeout(() => router.push("/api/auth/login"), 2000);
@@ -81,16 +81,10 @@ export default function ProductsPage() {
 
   return (
     <div className="container-custom py-8 space-y-6">
-      {" "}
-      {/* Pakai container-custom */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-h2 text-primary">Layanan</h1>{" "}
-          {/* Pakai text-h2, text-primary */}
-          <p className="text-muted-foreground">
-            Kelola layanan cuci sepatu
-          </p>{" "}
-          {/* Pakai text-muted-foreground */}
+          <h1 className="text-h2 text-primary">Layanan</h1>
+          <p className="text-muted-foreground">Kelola layanan cuci sepatu</p>
         </div>
         <Button onClick={() => router.push("/admin/service/new")}>
           <Plus className="h-4 w-4 mr-2" />
@@ -99,8 +93,6 @@ export default function ProductsPage() {
       </div>
       {error && (
         <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-          {" "}
-          {/* Pakai bg-destructive/10 */}
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
             <div className="flex-1">
@@ -117,8 +109,6 @@ export default function ProductsPage() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="card-custom">
-          {" "}
-          {/* Pakai card-custom */}
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-primary">
               {products.length}

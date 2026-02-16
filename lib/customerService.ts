@@ -1,4 +1,4 @@
-// lib/customerService.ts - FULL FIXED
+// lib/customerService.ts - FULL UPDATED
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
@@ -337,4 +337,19 @@ export async function getCompletedPaidOrdersByPhone(
     pickupDate: order.pickupDate?.toISOString() || null,
     completedDate: order.completedDate?.toISOString() || null,
   }));
+}
+
+// ✅ TAMBAH FUNGSI DELETE CUSTOMER (SOFT DELETE)
+export async function deleteCustomer(userId: number) {
+  try {
+    // Soft delete: set deletedAt instead of hard delete
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { deletedAt: new Date() },
+    });
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error("Error deleting customer:", error);
+    throw new Error("Failed to delete customer");
+  }
 }

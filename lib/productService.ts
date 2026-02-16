@@ -25,6 +25,25 @@ export type SerializedProduct = Omit<Product, "price"> & {
 };
 
 // ============================================
+// UTILITIES
+// ============================================
+
+function serializeProduct(product: Product): SerializedProduct {
+  return {
+    ...product,
+    price: product.price.toString(),
+  };
+}
+
+function generateSlug(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "");
+}
+
+// ============================================
 // PUBLIC FUNCTIONS (for customers)
 // ============================================
 
@@ -88,7 +107,7 @@ export async function createProduct(
   const product = await prisma.product.create({
     data: {
       name: data.name.trim(),
-      slug: generateSlug(data.name), // ← TAMBAH INI
+      slug: generateSlug(data.name),
       description: data.description?.trim() || null,
       price: new Decimal(data.price),
       category: data.category,
@@ -147,6 +166,16 @@ export async function softDeleteProduct(id: number): Promise<void> {
   });
 }
 
+export async function bulkSoftDeleteProducts(ids: number[]): Promise<void> {
+  await prisma.product.updateMany({
+    where: { id: { in: ids }, deletedAt: null },
+    data: {
+      deletedAt: new Date(),
+      isActive: false,
+    },
+  });
+}
+
 export async function toggleProductStatus(
   id: number,
 ): Promise<SerializedProduct> {
@@ -164,25 +193,6 @@ export async function toggleProductStatus(
   });
 
   return serializeProduct(updated);
-}
-
-// ============================================
-// UTILITIES
-// ============================================
-
-function serializeProduct(product: Product): SerializedProduct {
-  return {
-    ...product,
-    price: product.price.toString(),
-  };
-}
-
-function generateSlug(name: string) {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "");
 }
 
 // Statistics

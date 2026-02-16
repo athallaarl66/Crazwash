@@ -54,12 +54,7 @@ function CategoryTabs({ productsByCategory }: CategoryTabsProps) {
   );
 
   return (
-    <TabsList
-      className="grid w-full mb-6 h-auto gap-2 bg-transparent"
-      style={{
-        gridTemplateColumns: `repeat(${availableCategories.length}, 1fr)`,
-      }}
-    >
+    <TabsList className="grid w-full mb-6 h-auto gap-2 bg-transparent grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {availableCategories
         .sort(
           (a, b) =>

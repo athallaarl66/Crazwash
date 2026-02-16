@@ -51,7 +51,7 @@ export default function CreateServicePage() {
     };
 
     try {
-      const response = await fetch("/api/admin/products", {
+      const response = await fetch("/api/admin/service", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

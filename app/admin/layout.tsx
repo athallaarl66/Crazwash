@@ -1,4 +1,4 @@
-// src/app/(admin)/layout.tsx
+// app/(admin)/layout.tsx
 "use client";
 
 import { AdminLayoutClient } from "@/components/layout/AdminLayoutClient";

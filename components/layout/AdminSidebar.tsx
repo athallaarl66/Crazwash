@@ -69,7 +69,7 @@ export function AdminSidebar({
             width={62}
             height={62}
           />
-          <span className="text-h5 text-card-foreground">Admin Panel</span>
+          <span className="text-h6 text-card-foreground">Admin Panel</span>
         </Link>
 
         <button

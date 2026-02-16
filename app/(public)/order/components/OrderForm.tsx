@@ -129,12 +129,12 @@ function OrderForm({ products }: OrderFormProps) {
 
   // ==================== RENDER ====================
   return (
-    <div className="space-y-6 pb-32 lg:pb-6">
+    <div className="space-y-6 pb-24 md:pb-32 lg:pb-6">
       {/* Progress Steps */}
       <ProgressSteps currentStep={currentStep} />
 
       {/* Main Grid */}
-      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Form Steps (Left/Main Column) */}
         <div className="lg:col-span-2">
           <AnimatePresence mode="wait">

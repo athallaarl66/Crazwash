@@ -73,12 +73,12 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
   const waLink = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(waMessage)}`;
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container-custom py-8 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-2xl mx-auto text-center"
+        className="max-w-2xl mx-auto text-center px-4"
       >
         {/* HEADER */}
         <motion.div
@@ -87,14 +87,14 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
           className="mb-6"
         >
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-10 w-10 text-green-600" />
+          <div className="mx-auto mb-4 flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10 text-green-600" />
           </div>
 
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-h2 md:text-3xl font-bold mb-2">
             Pesanan Berhasil Dibuat! 🎉
           </h1>
-          <p className="text-gray-600">
+          <p className="text-body-sm md:text-base text-muted-foreground">
             Terima kasih <span className="font-semibold">{customerName}</span>,
             pesanan Anda sudah kami terima
           </p>
@@ -108,24 +108,30 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
         >
           <Card className="mb-6 shadow-lg border-2">
             <CardHeader>
-              <CardTitle>Detail Pesanan</CardTitle>
+              <CardTitle className="text-h4">Detail Pesanan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-600">Order Number</span>
-                <span className="font-mono font-bold text-blue-600">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b">
+                <span className="text-body-sm text-muted-foreground">
+                  Order Number
+                </span>
+                <span className="font-mono font-bold text-blue-600 text-body-sm">
                   {orderNumber || "-"}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-600">Total Pembayaran</span>
-                <span className="text-xl font-bold text-green-600">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b">
+                <span className="text-body-sm text-muted-foreground">
+                  Total Pembayaran
+                </span>
+                <span className="text-h4 md:text-xl font-bold text-green-600">
                   {formatCurrency(totalPrice)}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-gray-600">Metode Pembayaran</span>
-                <span className="font-semibold">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2">
+                <span className="text-body-sm text-muted-foreground">
+                  Metode Pembayaran
+                </span>
+                <span className="font-semibold text-body-sm">
                   {formatPaymentMethod(paymentMethod)}
                 </span>
               </div>
@@ -142,10 +148,10 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
         >
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
             <CardContent className="pt-6">
-              <h3 className="font-bold text-lg mb-3">
+              <h3 className="font-bold text-body md:text-lg mb-3">
                 📱 Langkah Selanjutnya:
               </h3>
-              <ol className="text-left text-sm space-y-2 list-decimal list-inside text-gray-700">
+              <ol className="text-left text-body-sm md:text-sm space-y-2 list-decimal list-inside text-muted-foreground">
                 <li>Lakukan pembayaran sesuai metode yang dipilih</li>
                 <li>Screenshot/foto bukti pembayaran Anda</li>
                 <li>Klik tombol "Kirim Bukti Bayar" di bawah</li>
@@ -185,7 +191,7 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
           transition={{ delay: 0.7 }}
           className="mt-8"
         >
-          <p className="text-xs text-gray-500">
+          <p className="text-caption text-muted-foreground">
             💡 Pesanan akan diproses setelah pembayaran dikonfirmasi oleh admin
           </p>
         </motion.div>

@@ -17,7 +17,7 @@ interface ProgressStepsProps {
 
 function ProgressSteps({ currentStep }: ProgressStepsProps) {
   return (
-    <div className="flex items-center justify-between max-w-3xl mx-auto mb-8 md:mb-12">
+    <div className="flex flex-col sm:flex-row items-center justify-between max-w-3xl mx-auto mb-8 md:mb-12 gap-4">
       {STEPS.map((step, index) => {
         const Icon = step.icon;
         const isActive = currentStep === step.id;

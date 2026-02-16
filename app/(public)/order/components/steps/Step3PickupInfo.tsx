@@ -44,7 +44,7 @@ function Step3PickupInfo({
       className="space-y-6"
     >
       {/* Header */}
-      <div className="card-custom p-6 bg-gradient-to-r from-primary/5 to-accent/5">
+      <div className="card-custom p-4 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5">
         <h2 className="text-h3 mb-2">Informasi Pickup</h2>
         <p className="text-body text-muted-foreground">
           Tentukan lokasi dan waktu pengambilan sepatu
@@ -52,7 +52,7 @@ function Step3PickupInfo({
       </div>
 
       {/* Form */}
-      <div className="card-custom p-6 space-y-5">
+      <div className="card-custom p-4 md:p-6 space-y-5">
         {/* Alamat */}
         <div className="space-y-2">
           <label
@@ -147,7 +147,7 @@ function Step3PickupInfo({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={onBack}
           className="flex-1 h-12 rounded-lg border-2 border-border bg-card

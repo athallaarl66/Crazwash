@@ -94,7 +94,7 @@ function ProductCard({
       {/* Content */}
       <div className="space-y-3 pt-2">
         {/* Title & Price */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h3 className="text-h5 text-card-foreground mb-1">
               {product.name}
@@ -112,7 +112,7 @@ function ProductCard({
         </div>
 
         {/* Quantity Controls */}
-        <div className="flex items-center justify-between pt-3 border-t-2 border-border">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t-2 border-border gap-3">
           <span className="text-body font-semibold text-card-foreground">
             Jumlah:
           </span>
@@ -165,8 +165,8 @@ function ProductCard({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            className="pt-3 border-t-2 border-border flex justify-between items-center 
-                     bg-primary/5 -mx-4 -mb-4 px-4 py-3 rounded-b-2xl"
+            className="pt-3 border-t-2 border-border flex flex-col sm:flex-row justify-between items-start sm:items-center 
+                     bg-primary/5 -mx-4 -mb-4 px-4 py-3 rounded-b-2xl gap-2"
           >
             <span className="text-body font-semibold text-card-foreground">
               Subtotal:

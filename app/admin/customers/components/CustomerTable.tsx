@@ -1,11 +1,12 @@
-// app/admin/customers/components/CustomerTable.tsx
+// app/admin/customers/components/CustomerTable.tsx - REMOVE ACTION COLUMN
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye } from "lucide-react"; // REMOVE Trash2
 import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { Customer } from "../types";
+// REMOVE useState
 
 const statusColor: Record<Customer["status"], string> = {
   ACTIVE: "bg-success/10 text-success border-success/20",
@@ -27,6 +28,8 @@ export default function CustomersTable({
 }: {
   customers: Customer[];
 }) {
+  // REMOVE deletingId state and handleDelete function
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -58,7 +61,7 @@ export default function CustomersTable({
             <th className="text-left p-3 font-semibold text-foreground">
               Pesanan Terakhir
             </th>
-            <th />
+            {/* REMOVE: Action column */}
           </tr>
         </thead>
 
@@ -66,7 +69,7 @@ export default function CustomersTable({
           {customers.length === 0 ? (
             <tr>
               <td
-                colSpan={7}
+                colSpan={7} // UPDATE DARI 8 KE 7
                 className="py-8 text-center text-muted-foreground"
               >
                 Tidak ada customer
@@ -119,16 +122,7 @@ export default function CustomersTable({
                   })}
                 </td>
 
-                <td className="p-3 text-right">
-                  <Link
-                    href={`/admin/customers/${encodeURIComponent(c.phone)}`}
-                  >
-                    <Button size="sm" variant="ghost">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Detail
-                    </Button>
-                  </Link>
-                </td>
+                {/* REMOVE: Action td */}
               </tr>
             ))
           )}
