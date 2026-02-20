@@ -4,13 +4,11 @@ import OrdersClient from "@/app/admin/orders/components/OrdersClient";
 import { getAllOrders } from "@/lib/orderService";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Download, BarChart, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 type PageProps = {
   searchParams: Promise<{
-    // ← UPDATE TYPE KE Promise
     search?: string;
     payment?: PaymentStatus;
     status?: OrderStatus;
@@ -19,14 +17,14 @@ type PageProps = {
 };
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
-  const params = await searchParams; // ← AWAIT searchParams
+  const params = await searchParams;
 
   const page = Number(params.page ?? 1);
 
   const validPaymentStatus =
     params.payment && ["UNPAID", "PAID", "REFUNDED"].includes(params.payment)
       ? (params.payment as PaymentStatus)
-      : undefined;
+      : undefined; // ← FIX: tambah undefined
 
   let result;
   try {
@@ -72,20 +70,6 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <p className="text-muted-foreground mt-1">
             Kelola semua pesanan dari pelanggan ShoesWash
           </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <BarChart className="mr-2 h-4 w-4" />
-            Analytics
-          </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Order Baru
-          </Button>
         </div>
       </div>
       {/* QUICK STATS */}
