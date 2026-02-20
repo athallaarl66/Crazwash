@@ -323,7 +323,6 @@ export default function LandingPage() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-          <ArrowRight className="ml-2 h-5 w-5" />
 
           <div className="mt-10 flex flex-wrap gap-6 justify-center text-body-sm opacity-90">
             {["100% Aman", "Berpengalaman", "Hasil Maksimal"].map((text, i) => (
