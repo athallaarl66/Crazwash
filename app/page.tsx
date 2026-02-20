@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Shield, Truck, ArrowRight, CheckCircle } from "lucide-react";
+import { Clock, Shield, Truck, CheckCircle } from "lucide-react";
 
 import { PublicNavbar } from "@/components/layout/PublicNavbar";
 import { Footer } from "@/components/layout/Footer";
@@ -320,7 +320,6 @@ export default function LandingPage() {
   "
             >
               Pesan Sekarang
-              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
 
