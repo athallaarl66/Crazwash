@@ -1,4 +1,3 @@
-// app/admin/orders/components/OrderFilters.tsx
 "use client";
 
 import { useState } from "react";
@@ -76,6 +75,7 @@ export default function OrderFilters() {
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-9"
+            suppressHydrationWarning
           />
         </div>
 
@@ -90,8 +90,6 @@ export default function OrderFilters() {
             onValueChange={(value) => updateParam("payment", value)}
           >
             <SelectTrigger className="w-[160px]" suppressHydrationWarning>
-              {" "}
-              {/* ← TAMBAH INI */}
               <SelectValue placeholder="Pembayaran" />
             </SelectTrigger>
             <SelectContent>
@@ -108,8 +106,6 @@ export default function OrderFilters() {
             onValueChange={(value) => updateParam("status", value)}
           >
             <SelectTrigger className="w-[160px]" suppressHydrationWarning>
-              {" "}
-              {/* ← TAMBAH INI */}
               <SelectValue placeholder="Status Order" />
             </SelectTrigger>
             <SelectContent>

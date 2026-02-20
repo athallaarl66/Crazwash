@@ -1,4 +1,3 @@
-// components/layout/AdminSidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -110,6 +109,7 @@ export function AdminSidebar({
             variant="ghost"
             size="sm"
             className="w-full justify-start cursor-pointer text-card-foreground hover:bg-muted hover:text-primary"
+            suppressHydrationWarning
           >
             <LayoutDashboard className="h-4 w-4 mr-2" />
             Public Site
@@ -122,6 +122,7 @@ export function AdminSidebar({
           onClick={handleLogout}
           disabled={isLoggingOut}
           className="w-full justify-start cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          suppressHydrationWarning
         >
           {isLoggingOut ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -152,7 +153,7 @@ export function AdminSidebar({
             />
 
             <motion.aside
-              className="fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card flex flex-col lg:hidden shadow-soft-lg"
+              className="fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card flex-col lg:hidden shadow-soft-lg"
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
