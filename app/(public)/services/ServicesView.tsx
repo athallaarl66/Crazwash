@@ -390,7 +390,6 @@ export default function ServicesView({ products }: ServicesViewProps) {
                 className="bg-primary hover:bg-accent text-primary-foreground px-10 py-6 text-base rounded-xl shadow-soft-lg hover:shadow-xl transition-all duration-300 gap-3 group font-semibold"
               >
                 <span>Pesan Sekarang</span>
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <p className="text-body-sm text-muted-foreground mt-4">
