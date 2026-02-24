@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     siteName: "Crazwash",
     images: [
       {
-        url: "/image/crazwash.jpg",
+        url: "/images/crazwash.jpg", // ← BENARIN PATH (ada "s"-nya)
         width: 800,
         height: 600,
         alt: "Crazwash - Cuci Sepatu & Tas Bandung",
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/image/crazwash.jpg",
-    apple: "/image/crazwash.jpg",
+    icon: "/images/crazwash.jpg", // ← BENARIN PATH
+    apple: "/images/crazwash.jpg", // ← BENARIN PATH
   },
   manifest: "/site.webmanifest",
 };
@@ -48,6 +48,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        {/* ← TAMBAHIN INI buat favicon */}
+        <link
+          rel="icon"
+          href="/images/crazwash.jpg"
+          type="image/jpeg"
+          sizes="32x32"
+        />
+        <link rel="apple-touch-icon" href="/images/crazwash.jpg" />
+      </head>
       <body
         className={`${plusJakarta.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
