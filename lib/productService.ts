@@ -132,7 +132,11 @@ export async function updateProduct(
 
   const updateData: any = {};
 
-  if (data.name !== undefined) updateData.name = data.name.trim();
+  // ✅ FIX: Tambahin pengecekan slug juga
+  if (data.name !== undefined) {
+    updateData.name = data.name.trim();
+    updateData.slug = generateSlug(data.name);
+  }
   if (data.description !== undefined)
     updateData.description = data.description?.trim() || null;
   if (data.price !== undefined) updateData.price = new Decimal(data.price);

@@ -83,6 +83,11 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
       isActive: formData.get("isActive") === "on",
     };
 
+    // ✅ TAMBAHIN: Logging sebelum fetch
+    console.log("📤 === SUBMITTING DATA ===");
+    console.log("Product ID:", productId);
+    console.log("Data:", JSON.stringify(data, null, 2));
+
     try {
       const response = await fetch(`/api/admin/service/${productId}`, {
         method: "PATCH",
@@ -92,12 +97,18 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
       const result = await response.json();
 
+      // ✅ TAMBAHIN: Logging setelah response
+      console.log("📥 === API RESPONSE ===");
+      console.log("Status:", response.status);
+      console.log("Result:", JSON.stringify(result, null, 2));
+
       if (!response.ok) {
         throw new Error(result.error || `Error ${response.status}`);
       }
 
       if (result.success) {
         setSuccess("Layanan berhasil diperbarui!");
+        console.log("✅ SUCCESS - Redirecting...");
         setTimeout(() => {
           router.push("/admin/service");
           router.refresh();
@@ -106,6 +117,8 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         setError(result.error || "Gagal memperbarui layanan");
       }
     } catch (err: any) {
+      // ✅ TAMBAHIN: Logging error
+      console.error("❌ SUBMIT ERROR:", err);
       setError(err.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);
@@ -124,11 +137,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
   return (
     <Card className="card-custom">
       <CardHeader className="bg-muted border-b border-border">
-        {" "}
-        {/* Pakai bg-muted, border-border */}
         <CardTitle className="flex items-center gap-3 text-h4">
-          {" "}
-          {/* Pakai text-h4 */}
           <Package className="h-7 w-7 text-primary" />
           Edit Layanan: <span className="text-primary">{product.name}</span>
         </CardTitle>
@@ -138,8 +147,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         {/* ALERTS */}
         {error && (
           <div className="p-4 mb-6 bg-destructive/10 border border-destructive/20 rounded-lg">
-            {" "}
-            {/* Pakai bg-destructive/10 */}
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
               <p>{error}</p>
@@ -149,8 +156,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
         {success && (
           <div className="p-4 mb-6 bg-success/10 border border-success/20 rounded-lg">
-            {" "}
-            {/* Pakai bg-success/10 */}
             <div className="flex items-center gap-2 text-success">
               <AlertCircle className="h-4 w-4" />
               <p>{success}</p>
@@ -162,8 +167,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
           {/* BASIC INFORMATION SECTION */}
           <div className="space-y-6">
             <h3 className="text-h5 text-foreground border-l-4 border-primary pl-3">
-              {" "}
-              {/* Pakai text-h5, text-foreground, border-primary */}
               Informasi Dasar
             </h3>
 
@@ -172,7 +175,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="name"
-                  className="font-semibold flex items-center gap-2 text-foreground" // Pakai text-foreground
+                  className="font-semibold flex items-center gap-2 text-foreground"
                 >
                   <span>Nama Layanan</span>
                   <span className="text-destructive">*</span>
@@ -186,8 +189,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                   className="h-12"
                 />
                 <p className="text-body-sm text-muted-foreground">
-                  {" "}
-                  {/* Pakai text-body-sm, text-muted-foreground */}
                   Nama layanan yang akan ditampilkan
                 </p>
               </div>
@@ -219,8 +220,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                         <div className="flex flex-col">
                           <span className="font-medium">{option.label}</span>
                           <span className="text-caption text-muted-foreground">
-                            {" "}
-                            {/* Pakai text-caption */}
                             {option.description}
                           </span>
                         </div>
@@ -327,15 +326,11 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
             </h3>
 
             <div className="flex items-center justify-between p-6 bg-muted rounded-xl border border-border">
-              {" "}
-              {/* Pakai bg-muted, border-border */}
               <div className="space-y-1">
                 <Label
                   htmlFor="isActive"
                   className="font-semibold text-h5 text-foreground"
                 >
-                  {" "}
-                  {/* Pakai text-h5 */}
                   Aktifkan Layanan
                 </Label>
                 <p className="text-muted-foreground">
@@ -353,8 +348,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
           {/* ACTION BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
-            {" "}
-            {/* Mobile-first, border-border */}
             <Button
               type="button"
               variant="outline"
@@ -368,7 +361,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 h-12 gap-2 bg-primary hover:bg-primary/90" // Pakai bg-primary
+              className="flex-1 h-12 gap-2 bg-primary hover:bg-primary/90"
             >
               {loading ? (
                 <>

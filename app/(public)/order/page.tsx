@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
+// ==================== CACHING FIX ====================
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // ==================== DATA FETCHING ====================
 async function getActiveProducts() {
   try {
@@ -138,7 +142,7 @@ export default async function OrderPage() {
   return (
     <div className="container-custom py-8 md:py-12">
       <div className="max-w-7xl mx-auto">
-        {/* Header dengan design tokens */}
+        {/* Header design tokens */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-h2 mb-3">Buat Pesanan</h1>
           <p className="text-body-lg text-muted-foreground max-w-2xl mx-auto">
@@ -147,7 +151,7 @@ export default async function OrderPage() {
           </p>
         </div>
 
-        {/* Order Form dengan Suspense */}
+        {/* Order Form Suspense */}
         <Suspense fallback={<OrderFormSkeleton />}>
           <OrderForm products={products} />
         </Suspense>
