@@ -304,6 +304,7 @@ async function getRevenueTrends(startDate: Date) {
     orderBy: { createdAt: "asc" },
   });
 
+  // Map revenue per tanggal dari order yang ada
   const map = new Map<string, number>();
 
   orders.forEach((o) => {
@@ -311,11 +312,51 @@ async function getRevenueTrends(startDate: Date) {
       day: "numeric",
       month: "short",
     });
-
     map.set(key, (map.get(key) ?? 0) + Number(o.totalPrice));
   });
 
-  return Array.from(map.entries()).map(([month, revenue]) => ({
+  // Hitung jumlah hari dari startDate sampai hari ini
+  const now = new Date();
+  const diffMs = now.getTime() - startDate.getTime();
+  const diffDays = Math.ceil(diffMs / 86400000);
+
+  // Kalau range pendek (<=14 hari) → isi semua hari
+  // Kalau range panjang (>14 hari) → group per minggu biar ga penuh
+  if (diffDays <= 14) {
+    const result: { month: string; revenue: number }[] = [];
+
+    for (let i = 0; i < diffDays; i++) {
+      const date = new Date(startDate.getTime() + i * 86400000);
+      const key = date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+      });
+      result.push({ month: key, revenue: map.get(key) ?? 0 });
+    }
+
+    return result;
+  }
+
+  // Range panjang: group per minggu
+  const weekMap = new Map<string, number>();
+
+  for (let i = 0; i < diffDays; i++) {
+    const date = new Date(startDate.getTime() + i * 86400000);
+
+    // Label: "W1 Jan", "W2 Jan", dll
+    const weekNum = Math.floor(i / 7) + 1;
+    const monthLabel = date.toLocaleDateString("id-ID", { month: "short" });
+    const key = `W${weekNum} ${monthLabel}`;
+
+    const dayKey = date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+    });
+
+    weekMap.set(key, (weekMap.get(key) ?? 0) + (map.get(dayKey) ?? 0));
+  }
+
+  return Array.from(weekMap.entries()).map(([month, revenue]) => ({
     month,
     revenue,
   }));

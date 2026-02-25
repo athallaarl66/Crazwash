@@ -1,4 +1,3 @@
-// app/admin/dashboard/components/RevenueChart.tsx
 "use client";
 import {
   LineChart,
@@ -37,33 +36,70 @@ export default function RevenueChart({
     );
   }
 
+  const isEmpty = data.length === 0;
+  const maxRevenue = isEmpty ? 0 : Math.max(...data.map((d) => d.revenue));
+  // Y-axis ceiling: 30% di atas max, dibulatkan ke 10rb terdekat
+  const yMax =
+    maxRevenue === 0 ? 100000 : Math.ceil((maxRevenue * 1.3) / 10000) * 10000;
+
+  const formatYAxis = (value: number) => {
+    if (value === 0) return "0";
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}jt`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(0)}rb`;
+    return String(value);
+  };
+
   return (
     <Card className="card-custom">
       <CardHeader>
         <CardTitle className="text-h4 text-primary">Trend Penjualan</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />{" "}
-            <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)" }} />{" "}
-            <YAxis tick={{ fill: "var(--muted-foreground)" }} />
-            <Tooltip
-              formatter={(v) => formatCurrency(Number(v))}
-              contentStyle={{
-                backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius)",
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke="var(--primary)"
-              strokeWidth={window.innerWidth < 640 ? 2 : 3}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {isEmpty ? (
+          <p className="text-muted-foreground text-center py-8 text-body">
+            Belum ada data
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={data}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                tickFormatter={formatYAxis}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                domain={[0, yMax]}
+                width={48}
+              />
+              <Tooltip
+                formatter={(v) => [formatCurrency(Number(v)), "Revenue"]}
+                contentStyle={{
+                  backgroundColor: "var(--card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius)",
+                  fontSize: 13,
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="var(--primary)"
+                strokeWidth={2}
+                dot={{ r: 4, fill: "var(--primary)" }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   );
