@@ -1,78 +1,63 @@
 // lib/rate-limit.ts
-import { NextRequest } from "next/server";
+//
+// Abuse limits for public entry points. Counters live in the shared database, so a
+// limit holds regardless of which instance serves the request; the previous
+// in-memory implementation did not survive serverless instances.
+import { prisma } from "./prisma";
 
-interface RateLimitResult {
+export interface RateLimitResult {
   success: boolean;
   limit: number;
   remaining: number;
-  reset: number;
+  /** Seconds until the current window ends. */
+  resetInSeconds: number;
 }
 
-// In-memory store (untuk produksi pakai Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+/** Public order creation. Documented in README.md ("Order creation limit"). */
+export const ORDER_RATE_LIMIT = { limit: 5, windowMs: 60 * 60 * 1000 };
 
+/** Client identifier used as part of the counter key. */
+export function clientIdentifier(forwardedFor: string | null | undefined): string {
+  return forwardedFor?.split(",")[0]?.trim() || "unknown";
+}
+
+/**
+ * Counts one attempt for `key` and reports whether it is allowed. The increment is
+ * a single atomic upsert, so concurrent attempts on the same key cannot lose a
+ * count the way a read-then-write would.
+ */
 export async function rateLimit(
-  request: NextRequest,
-  limit: number = 100, // 100 requests
-  window: number = 15 * 60 * 1000, // 15 minutes
+  key: string,
+  limit: number,
+  windowMs: number,
 ): Promise<RateLimitResult> {
-  const identifier = getIdentifier(request);
-  const now = Date.now();
+  const window = `${Math.ceil(windowMs / 1000)} seconds`;
 
-  // Get or create rate limit entry
-  let entry = rateLimitStore.get(identifier);
+  const rows = await prisma.$queryRaw<
+    { count: number; windowStart: Date }[]
+  >`
+    INSERT INTO "RateLimit" ("key", "windowStart", "count", "updatedAt")
+    VALUES (${key}, NOW(), 1, NOW())
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE
+        WHEN "RateLimit"."windowStart" < NOW() - ${window}::interval THEN 1
+        ELSE "RateLimit"."count" + 1
+      END,
+      "windowStart" = CASE
+        WHEN "RateLimit"."windowStart" < NOW() - ${window}::interval THEN NOW()
+        ELSE "RateLimit"."windowStart"
+      END,
+      "updatedAt" = NOW()
+    RETURNING "count", "windowStart"
+  `;
 
-  // Reset if window expired
-  if (!entry || now > entry.resetTime) {
-    entry = {
-      count: 0,
-      resetTime: now + window,
-    };
-  }
-
-  // Increment count
-  entry.count++;
-  rateLimitStore.set(identifier, entry);
-
-  // Cleanup old entries (simple garbage collection)
-  if (Math.random() < 0.01) {
-    // 1% chance
-    cleanupOldEntries(now);
-  }
-
-  const remaining = Math.max(0, limit - entry.count);
-  const success = entry.count <= limit;
+  const { count, windowStart } = rows[0];
+  const elapsedMs = Date.now() - new Date(windowStart).getTime();
 
   return {
-    success,
+    success: count <= limit,
     limit,
-    remaining,
-    reset: Math.ceil((entry.resetTime - now) / 1000), // seconds
+    remaining: Math.max(0, limit - count),
+    resetInSeconds: Math.max(0, Math.ceil((windowMs - elapsedMs) / 1000)),
   };
 }
-
-function getIdentifier(request: NextRequest): string {
-  // Try to get IP address
-  const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
-
-  // Combine IP with path for more granular rate limiting
-  const path = request.nextUrl.pathname;
-  return `${ip}:${path}`;
-}
-
-function cleanupOldEntries(now: number) {
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(key);
-    }
-  }
-}
-
-// API-specific rate limits
-export const API_RATE_LIMITS = {
-  "/api/auth": { limit: 10, window: 15 * 60 * 1000 }, // 10 per 15 min
-  "/api/orders": { limit: 50, window: 15 * 60 * 1000 }, // 50 per 15 min
-  "/api/products": { limit: 100, window: 15 * 60 * 1000 }, // 100 per 15 min
-  "/api/admin": { limit: 200, window: 15 * 60 * 1000 }, // 200 per 15 min
-};

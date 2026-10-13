@@ -1,9 +1,19 @@
-// actions/orderActions.ts - FULL UPDATED VERSION
+// actions/orderActions.ts
 "use server";
+
+import { headers } from "next/headers";
+import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { adminGuardResult } from "@/lib/api-error-handler";
+import {
+  ORDER_RATE_LIMIT,
+  clientIdentifier,
+  rateLimit,
+} from "@/lib/rate-limit";
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString();
@@ -92,62 +102,71 @@ export async function createOrderAction(formData: FormData): Promise<{
       return { success: false, error: "Pilih metode pembayaran" };
     }
 
-    // 4. Extract city from address
+    // 4. Abuse limit for public order creation
+    const clientIp = clientIdentifier((await headers()).get("x-forwarded-for"));
+    const limit = await rateLimit(
+      `orders:${clientIp}`,
+      ORDER_RATE_LIMIT.limit,
+      ORDER_RATE_LIMIT.windowMs,
+    );
+
+    if (!limit.success) {
+      return {
+        success: false,
+        error:
+          "Terlalu banyak pesanan dari perangkat ini. Silakan coba lagi nanti atau hubungi admin Crazwash.",
+      };
+    }
+
+    // 5. Extract city from address
     const city = extractCityFromAddress(address);
     console.log("📍 City extracted:", city);
 
     // ============================================
-    // 🔥 CRITICAL: CREATE OR UPDATE USER
+    // 🔥 CRITICAL: LINK OR CREATE USER
     // ============================================
     let userId: number | null = null;
 
     try {
-      // Cek apakah user sudah ada (by phone first)
-      let user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { phone: customerPhone },
-            ...(customerEmail ? [{ email: customerEmail }] : []),
-          ],
-        },
-      });
+      // Match on phone first, then on email: the first contact detail the customer
+      // actually provided wins, so a phone match never adopts an unrelated account.
+      const existingUser =
+        (await prisma.user.findFirst({
+          where: { phone: customerPhone, deletedAt: null },
+        })) ??
+        (customerEmail
+          ? await prisma.user.findFirst({
+              where: { email: customerEmail.toLowerCase(), deletedAt: null },
+            })
+          : null);
 
-      console.log(
-        "👤 User lookup result:",
-        user ? `Found user ID: ${user.id}` : "No user found",
-      );
-
-      if (!user) {
-        // Create new user with CUSTOMER role
-        user = await prisma.user.create({
-          data: {
-            name: customerName,
-            email: customerEmail || `customer-${Date.now()}@temp.com`,
-            password:
-              "$2a$10$xjLHA.v6qWUw1eLPU.KW8.YY5QdMAlG6lPjMSA4g/EgPfw.GR1kBe", // Temporary hashed password
-            phone: customerPhone,
-            address: address,
-            city: city, // ✅ SIMPAN CITY KE
-            role: "CUSTOMER",
-          },
-        });
-        console.log("✅ Created new user with ID:", user.id);
+      if (existingUser) {
+        // Link only. Name, address and especially role belong to the account owner;
+        // checkout never rewrites them.
+        userId = existingUser.id;
+        console.log("🔗 Linked order to existing user ID:", userId);
       } else {
-        // Update existing user (ensure role is CUSTOMER and update info)
-        user = await prisma.user.update({
-          where: { id: user.id },
+        // A checkout-created record must not be sign-in capable: the stored
+        // credential is a hash of a random secret that is never disclosed, so the
+        // account can only be used after an administrator sets a password.
+        const undisclosedSecret = randomBytes(32).toString("hex");
+
+        const createdUser = await prisma.user.create({
           data: {
             name: customerName,
-            address: address,
-            city: city, // ✅ UPDATE CITY DI USER
-            role: "CUSTOMER", // Ensure role is CUSTOMER
-            lastLogin: new Date(),
+            // No substitute email address is invented; email stays empty when the
+            // customer did not provide one.
+            email: customerEmail ? customerEmail.toLowerCase() : null,
+            password: await bcrypt.hash(undisclosedSecret, 10),
+            phone: customerPhone,
+            address,
+            city,
           },
         });
-        console.log("✅ Updated existing user ID:", user.id);
-      }
 
-      userId = user.id;
+        userId = createdUser.id;
+        console.log("✅ Created customer record with ID:", userId);
+      }
     } catch (userError) {
       console.error("❌ User creation/update error:", userError);
       // Continue without userId - order will still be created
@@ -269,6 +288,11 @@ export async function updateOrderStatus(
   newStatus: OrderStatus,
   adminNotes?: string,
 ) {
+  // Exported from a "use server" module, so anyone can call it; mutating an order
+  // requires an administrator session.
+  const unauthorized = await adminGuardResult();
+  if (unauthorized) return unauthorized;
+
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },

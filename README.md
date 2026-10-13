@@ -17,8 +17,8 @@ A web app for Crazwash, a shoe cleaning small business based in Bandung, Indones
 **Customer-facing:**
 
 - 4-step order flow: pick a service → fill in details → schedule pickup → confirm payment
-- Payment proof upload
 - Order success page with summary
+- Payment instructions come from configuration (bank transfer, e-wallet, QRIS, cash on delivery)
 
 **Admin panel:**
 
@@ -26,8 +26,7 @@ A web app for Crazwash, a shoe cleaning small business based in Bandung, Indones
 - Order management (update status, add notes, filter/search)
 - Service/product management (CRUD + soft delete)
 - Customer list with order history per customer
-- Real-time notifications for incoming orders
-- Data export
+- Data export (CSV/JSON from the customer list)
 
 ## Getting Started
 
@@ -67,6 +66,82 @@ payment surface. The app has no fallback accounts, and the build refuses to run
 while they are empty (set `ALLOW_MISSING_BUSINESS_CONFIG=1` to skip that check
 locally). See `.env.example` for the JSON shape and the allowed methods.
 
+## Security
+
+### Administrative surfaces
+
+Role checks read the stored account role on every request: `requireAdmin()` in
+`lib/api-error-handler.ts` loads role, enabled state and removal state from the
+database, so demoting an account takes effect on its next request instead of at
+token expiry. Every administrative API route calls it, administrative server
+actions return a failure instead of mutating, and `app/admin/layout.tsx` sends
+non-administrators to sign-in before any administrative page renders.
+
+Path-level protection lives in `proxy.ts` (the convention Next 16 executes; the
+deprecated `middleware.ts` is not present). It only checks that a session exists,
+and its matcher covers `/admin/:path*` and `/auth/login` — the two paths the guard
+branches on.
+
+Manual check of the path guard (no session): expected `307 -> http://localhost:3000/auth/login`
+
+```bash
+curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' http://localhost:3000/admin/dashboard
+```
+
+Manual check of an administrative API route (no session): expected `401` with a JSON
+error and no business data
+
+```bash
+curl -s -i http://localhost:3000/api/admin/dashboard | head -1
+```
+
+### Sign-in lockout
+
+Implemented in `lib/auth.ts`:
+
+| Value                             | Setting                    |
+| --------------------------------- | -------------------------- |
+| Failed attempts before lockout    | 5 (`LOGIN_MAX_ATTEMPTS`)   |
+| Lockout window                    | 15 minutes (`LOGIN_LOCK_WINDOW_MS`) |
+
+Failed attempts increment `loginAttempts`; reaching the threshold sets `lockedUntil`
+to now plus the window. While locked, sign-in is refused even with the correct
+credential. A successful sign-in clears both columns and writes `lastLogin`, and a
+lock that has expired no longer counts — the next attempt starts a fresh window.
+
+Clearing a locked account on purpose (Prisma Studio or SQL):
+
+```sql
+UPDATE "User" SET "loginAttempts" = 0, "lockedUntil" = NULL WHERE "email" = '<account email>';
+```
+
+### Order creation limit
+
+Implemented in `lib/rate-limit.ts` (`ORDER_RATE_LIMIT`): 5 order submissions per
+client within 1 hour. Each attempt is one atomic upsert into the `RateLimit` table,
+so the count holds across deployed instances; a refusal returns `success: false`
+with a message and creates no order. Counters are keyed per client address and can be
+reset with:
+
+```sql
+DELETE FROM "RateLimit" WHERE "key" = 'orders:<client address>';
+```
+
+### Customer accounts created by checkout
+
+A checkout that finds no matching customer creates a record whose password is a hash
+of a random secret that is never disclosed, so that record cannot sign in until an
+administrator sets a credential for it. Matching is by phone first, then by email,
+and an existing record is only linked — its role, name and address are never
+rewritten. Checkout never invents a substitute email address, so `User.email` is
+optional.
+
+## Documentation
+
+Resolved issues are written up under `docs/issues/` — one document per issue, with the symptoms, the
+root cause, the evidence that was actually observed and the checks still outstanding. Start at
+[`docs/issues/README.md`](docs/issues/README.md).
+
 ## Project Structure
 
 ```
@@ -103,4 +178,6 @@ npx prisma studio         # Open Prisma GUI
 - All monetary values use Prisma `Decimal` type to avoid floating point issues
 - Soft delete is used for `User` and `Product` (via `deletedAt` field)
 - `statusHistory` on `Order` is stored as a `Json[]` array for lightweight audit trail without an extra table
+- `User.email` is optional: checkout-created accounts have no email until one is set
+- Sessions issued before the role change carry a hardcoded role — rotate `NEXTAUTH_SECRET` when deploying so they are invalidated
 - Some hooks and components are intentionally left as stubs, planned for future refactoring

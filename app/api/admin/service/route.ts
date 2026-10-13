@@ -1,14 +1,11 @@
 // app/api/admin/service/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { adminGuardResponse } from "@/lib/api-error-handler";
 import * as productService from "@/lib/productService";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminGuardResponse();
+  if (denied) return denied;
 
   try {
     const products = await productService.getAllProducts();
@@ -27,10 +24,8 @@ export async function GET(req: NextRequest) {
 
 // ✅ POST /api/admin/products - CREATE PRODUCT (ADMIN)
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminGuardResponse();
+  if (denied) return denied;
 
   try {
     const body = await req.json();
