@@ -5,11 +5,15 @@ import { updateOrderStatus } from "@/lib/orderService";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
+import { adminGuardResult } from "@/lib/api-error-handler";
 
 export async function updateOrderStatusAction(
   orderId: number,
   status: OrderStatus,
 ) {
+  const unauthorized = await adminGuardResult();
+  if (unauthorized) return unauthorized;
+
   try {
     await updateOrderStatus(orderId, status);
     revalidatePath("/admin/orders");
@@ -25,6 +29,9 @@ export async function updatePaymentStatusAction(
   orderId: number,
   status: PaymentStatus,
 ) {
+  const unauthorized = await adminGuardResult();
+  if (unauthorized) return unauthorized;
+
   try {
     await prisma.order.update({
       where: { id: orderId },

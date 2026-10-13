@@ -13,7 +13,7 @@ datasource db {
 
 model User {
   id       Int    @id @default(autoincrement())
-  email    String @unique
+  email    String? @unique
   password String
   name     String
   role     Role   @default(CUSTOMER)
@@ -303,4 +303,17 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+//////////////////////////////////////////////////////
+// RATE LIMIT
+//////////////////////////////////////////////////////
+
+// One row per limited key (client + route). Shared by all instances, so a limit
+// holds regardless of which instance serves the request.
+model RateLimit {
+  key         String   @id
+  windowStart DateTime
+  count       Int      @default(0)
+  updatedAt   DateTime @updatedAt
 }

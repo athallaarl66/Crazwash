@@ -4,6 +4,8 @@ import { AuditAction, Role, Prisma } from "@prisma/client";
 
 interface AuditLogInput {
   userId?: number | null;
+  // AuditLog.userEmail is a required column, but a checkout-created account may have
+  // no email address.
   userEmail: string;
   userRole: Role | string;
   action: AuditAction | string;
@@ -114,7 +116,7 @@ export async function auditProductChange(
 
   await logAudit({
     userId,
-    userEmail: user.email,
+    userEmail: user.email ?? "",
     userRole: user.role,
     action,
     entity: "Product",
@@ -145,7 +147,7 @@ export async function auditOrderChange(
 
   await logAudit({
     userId,
-    userEmail: user.email,
+    userEmail: user.email ?? "",
     userRole: user.role,
     action,
     entity: "Order",
@@ -172,7 +174,7 @@ export async function auditUserChange(
 
   await logAudit({
     userId: actorUserId,
-    userEmail: actor.email,
+    userEmail: actor.email ?? "",
     userRole: actor.role,
     action,
     entity: "User",

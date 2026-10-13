@@ -2,10 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
+import { adminGuardResponse } from "@/lib/api-error-handler";
 
 /* ================== GET ================== */
 export async function GET(request: NextRequest) {
   try {
+    const denied = await adminGuardResponse();
+    if (denied) return denied;
+
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
 

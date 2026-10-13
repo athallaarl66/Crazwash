@@ -9,6 +9,14 @@ import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
+import { prisma } from "./prisma";
+
+/** Error carrying an HTTP status; handleAPIError turns it into a JSON response. */
+function httpError(message: string, status: number) {
+  const error = new Error(message) as Error & { status: number };
+  error.status = status;
+  return error;
+}
 
 export interface APIErrorResponse {
   error: string;
@@ -185,9 +193,7 @@ export async function requireAuth() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    const error = new Error("Unauthorized") as Error & { status: number };
-    error.status = 401;
-    throw error;
+    throw httpError("Unauthorized", 401);
   }
 
   return session;
@@ -197,12 +203,89 @@ export async function requireRole(allowedRoles: string[]) {
   const session = await requireAuth();
 
   if (!allowedRoles.includes(session.user.role)) {
-    const error = new Error("Forbidden - Insufficient permissions") as Error & {
-      status: number;
-    };
-    error.status = 403;
-    throw error;
+    throw httpError("Forbidden - Insufficient permissions", 403);
   }
 
   return session;
+}
+
+/**
+ * The single administrative guard. Routes and server actions call this instead of
+ * reading the role cached in the session, because the session's role is written at
+ * sign-in time: a demoted administrator would otherwise keep access until the
+ * token expires. Role, enabled state and removal state are read from storage on
+ * every call, so the next request after a change already fails.
+ */
+export async function requireAdmin() {
+  const session = await requireAuth();
+
+  const userId = Number(session.user.id);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw httpError("Unauthorized", 401);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      isActive: true,
+      deletedAt: true,
+    },
+  });
+
+  if (!user || !user.isActive || user.deletedAt) {
+    throw httpError("Unauthorized", 401);
+  }
+
+  if (user.role !== "ADMIN") {
+    throw httpError("Forbidden - Administrator role required", 403);
+  }
+
+  return {
+    session,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+  };
+}
+
+/**
+ * Route-handler adapter for the administrative guard: returns the authorization
+ * response when the caller is not an administrator, and null when the request may
+ * proceed. Each route keeps its own error handling for the work that follows.
+ */
+export async function adminGuardResponse(): Promise<NextResponse | null> {
+  try {
+    await requireAdmin();
+    return null;
+  } catch (error) {
+    return handleAPIError(error);
+  }
+}
+
+/**
+ * Server-action adapter for the administrative guard: returns the failure result
+ * the action reports to its caller, or null when the action may proceed. Used so a
+ * rejected action returns a value the UI can show instead of throwing into the
+ * framework's error path.
+ */
+export async function adminGuardResult(): Promise<{
+  success: false;
+  error: string;
+} | null> {
+  try {
+    await requireAdmin();
+    return null;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unauthorized",
+    };
+  }
 }

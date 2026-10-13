@@ -2,8 +2,8 @@
 
 ## 1. Baseline
 
-- [ ] 1.1 Install dependencies and record the baseline: `npm install` then `npx tsc --noEmit` and `npm run lint`; store the resulting output so later regressions are distinguishable from pre-existing errors
-- [ ] 1.2 Verify the path-guard file convention for the installed Next.js version by reading its own docs under `node_modules/next/dist/docs/`, and write the finding (file name, export name, expected build output) into the change conversation before renaming anything
+- [x] 1.1 Install dependencies and record the baseline: `npm install` then `npx tsc --noEmit` and `npm run lint`; store the resulting output so later regressions are distinguishable from pre-existing errors
+- [x] 1.2 Verify the path-guard file convention for the installed Next.js version by reading its own docs under `node_modules/next/dist/docs/`, and write the finding (file name, export name, expected build output) into the change conversation before renaming anything
 
 ## 2. Session and authorization from stored state
 
@@ -35,12 +35,12 @@
 
 - [ ] 6.1 Add the rate-limit storage with a migration (unique key per client and route, window start, counter) and an atomic increment; verify with a test that concurrent increments on the same key produce the expected total
 - [ ] 6.2 Apply the limit to the public order-creation path with a defined refusal response; verify with a test that requests beyond the threshold are refused and create no order
-- [ ] 6.3 Document the configured thresholds and windows in `README.md` and confirm the documented values match the code
+- [x] 6.3 Document the configured thresholds and windows in `README.md` and confirm the documented values match the code
 
 ## 7. Integration verification
 
 - [ ] 7.1 End-to-end negative check with an account that genuinely lacks administrator privileges (do not revoke an existing administrator's role to create the test case): confirm the dashboard API, the order mutation endpoint, and each administrative action all refuse that session while an administrator session succeeds
-- [ ] 7.2 Verify no administrative surface remains unguarded: list every administrative route handler and server action and confirm each one calls the guard, recording the list in the change conversation
+- [x] 7.2 Verify no administrative surface remains unguarded: list every administrative route handler and server action and confirm each one calls the guard, recording the list in the change conversation
 
 ## Workflow follow-up
 
