@@ -55,10 +55,17 @@ npm run dev
 ## Environment Variables
 
 ```env
-DATABASE_URL=       # PostgreSQL connection string (from Neon dashboard)
-NEXTAUTH_SECRET=    # Random secret — generate with: openssl rand -base64 32
-NEXTAUTH_URL=       # http://localhost:3000 for local dev
+DATABASE_URL=                 # PostgreSQL connection string (from Neon dashboard)
+NEXTAUTH_SECRET=              # Random secret — generate with: openssl rand -base64 32
+NEXTAUTH_URL=                 # http://localhost:3000 for local dev
+BUSINESS_WHATSAPP_NUMBER=     # WhatsApp number that receives payment proof (digits, country code)
+PAYMENT_DESTINATIONS=         # JSON array of the payment destinations shown at checkout
 ```
+
+`BUSINESS_WHATSAPP_NUMBER` and `PAYMENT_DESTINATIONS` feed every customer-facing
+payment surface. The app has no fallback accounts, and the build refuses to run
+while they are empty (set `ALLOW_MISSING_BUSINESS_CONFIG=1` to skip that check
+locally). See `.env.example` for the JSON shape and the allowed methods.
 
 ## Project Structure
 

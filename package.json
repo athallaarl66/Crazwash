@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && prisma db seed && next build",
+    "build": "node --import tsx scripts/check-business-config.ts && prisma generate && prisma migrate deploy && prisma db seed && next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import tsx --test \"tests/**/*.test.{ts,tsx}\"",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:reset": "prisma migrate reset --force"
   },
