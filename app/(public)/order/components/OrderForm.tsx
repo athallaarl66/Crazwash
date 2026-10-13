@@ -12,6 +12,7 @@ import { Step3PickupInfo } from "./steps/Step3PickupInfo";
 import { Step4Payment } from "./steps/Step4Payment";
 import { CartSummary } from "./cart/CartSummary";
 import { MobileCartSheet } from "./cart/MobileCartSheet";
+import type { PaymentDestination } from "@/lib/business-config";
 
 interface Product {
   id: number;
@@ -23,9 +24,11 @@ interface Product {
 
 interface OrderFormProps {
   products: Product[];
+  /** Payment destinations configured by the business; see lib/business-config.ts */
+  paymentDestinations: PaymentDestination[];
 }
 
-function OrderForm({ products }: OrderFormProps) {
+function OrderForm({ products, paymentDestinations }: OrderFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
@@ -94,13 +97,11 @@ function OrderForm({ products }: OrderFormProps) {
       const result = await createOrderAction(form);
 
       if (result.success) {
-        const params = new URLSearchParams({
-          orderNumber: result.orderNumber || "",
-          customerName: result.customerName || formData.customerName,
-          totalPrice: result.totalPrice?.toString() || "0",
-          paymentMethod: result.paymentMethod || formData.paymentMethod,
-        });
-        router.push(`/order/success?${params.toString()}`);
+        // URL contract: /order/success?orderNumber=<orderNumber> - the success page
+        // reads the stored order, so nothing else travels in the URL.
+        router.push(
+          `/order/success?orderNumber=${encodeURIComponent(result.orderNumber ?? "")}`,
+        );
       } else {
         setError(result.error || "Terjadi kesalahan saat membuat pesanan");
         setLoading(false);
@@ -174,6 +175,7 @@ function OrderForm({ products }: OrderFormProps) {
             {currentStep === 4 && (
               <Step4Payment
                 key="step4"
+                paymentDestinations={paymentDestinations}
                 paymentMethod={formData.paymentMethod}
                 onPaymentMethodChange={(value) =>
                   setFormData((prev) => ({ ...prev, paymentMethod: value }))

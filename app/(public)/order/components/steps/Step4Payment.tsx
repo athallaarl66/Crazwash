@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import {
   ArrowLeft,
   CreditCard,
@@ -11,8 +12,11 @@ import {
   Loader2,
   QrCode,
 } from "lucide-react";
+import type { PaymentDestination, PaymentMethodId } from "@/lib/business-config";
 
 interface Step4Props {
+  /** Destinations configured by the business; empty means checkout cannot be completed. */
+  paymentDestinations: PaymentDestination[];
   paymentMethod: string;
   onPaymentMethodChange: (value: string) => void;
   onBack: () => void;
@@ -22,76 +26,15 @@ interface Step4Props {
   canSubmit: boolean;
 }
 
-const PAYMENT_METHODS = [
-  {
-    id: "TRANSFER",
-    name: "Transfer Bank",
-    icon: Building2,
-    description: "BCA, Mandiri, BNI, BRI",
-    badge: "Populer",
-  },
-  {
-    id: "EWALLET",
-    name: "E-Wallet",
-    icon: Wallet,
-    description: "GoPay, OVO, Dana, ShopeePay",
-    badge: null,
-  },
-  {
-    id: "QRIS",
-    name: "QRIS",
-    icon: QrCode,
-    description: "Scan QR code untuk pembayaran",
-    badge: "Cepat",
-  },
-  {
-    id: "COD",
-    name: "Cash on Delivery",
-    icon: CreditCard,
-    description: "Bayar saat sepatu diambil",
-    badge: "Praktis",
-  },
-];
-
-// DETAIL PEMBAYARAN (PLACEHOLDER RANDOM - GANTI DENGAN DATA REAL ANDA!)
-const PAYMENT_DETAILS = {
-  TRANSFER: [
-    { bank: "BCA", account: "123456789012", name: "Crazwash Indonesia" },
-    { bank: "Mandiri", account: "098765432109", name: "Crazwash Indonesia" },
-    { bank: "BNI", account: "112233445566", name: "Crazwash Indonesia" },
-    { bank: "BRI", account: "556677889900", name: "Crazwash Indonesia" },
-  ],
-  EWALLET: [
-    {
-      provider: "GoPay",
-      number: "+62 812-3456-7890",
-      name: "Crazwash Indonesia",
-    },
-    {
-      provider: "OVO",
-      number: "+62 813-4567-8901",
-      name: "Crazwash Indonesia",
-    },
-    {
-      provider: "Dana",
-      number: "+62 814-5678-9012",
-      name: "Crazwash Indonesia",
-    },
-    {
-      provider: "ShopeePay",
-      number: "+62 815-6789-0123",
-      name: "Crazwash Indonesia",
-    },
-  ],
-  QRIS: {
-    qrCodeUrl:
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5RUklTIFBsYWNlaG9sZGVyPC90ZXh0Pjwvc3ZnPg==",
-    description: "Scan QR code di aplikasi e-wallet atau mobile banking Anda",
-  },
-  COD: null,
+const METHOD_ICONS: Record<PaymentMethodId, typeof Building2> = {
+  TRANSFER: Building2,
+  EWALLET: Wallet,
+  QRIS: QrCode,
+  COD: CreditCard,
 };
 
 function Step4Payment({
+  paymentDestinations,
   paymentMethod,
   onPaymentMethodChange,
   onBack,
@@ -100,8 +43,36 @@ function Step4Payment({
   error,
   canSubmit,
 }: Step4Props) {
-  const selectedDetails =
-    PAYMENT_DETAILS[paymentMethod as keyof typeof PAYMENT_DETAILS];
+  const selected = paymentDestinations.find(
+    (destination) => destination.method === paymentMethod,
+  );
+
+  if (paymentDestinations.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="card-custom p-6 text-center"
+      >
+        <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
+        <h2 className="text-h4 mb-2">Pembayaran Belum Dikonfigurasi</h2>
+        <p className="text-body text-muted-foreground">
+          Metode pembayaran belum diatur. Hubungi admin untuk menyelesaikan
+          pesanan Anda.
+        </p>
+        <button
+          onClick={onBack}
+          className="mt-6 h-12 px-6 rounded-lg border-2 border-border bg-card
+                   text-card-foreground font-semibold hover:bg-primary/5
+                   transition-all duration-200 inline-flex items-center justify-center gap-2"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Kembali
+        </button>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -120,14 +91,14 @@ function Step4Payment({
 
       {/* Payment Methods */}
       <div className="space-y-4">
-        {PAYMENT_METHODS.map((method) => {
-          const Icon = method.icon;
-          const isSelected = paymentMethod === method.id;
+        {paymentDestinations.map((destination) => {
+          const Icon = METHOD_ICONS[destination.method] ?? CreditCard;
+          const isSelected = paymentMethod === destination.method;
 
           return (
             <motion.button
-              key={method.id}
-              onClick={() => onPaymentMethodChange(method.id)}
+              key={destination.method}
+              onClick={() => onPaymentMethodChange(destination.method)}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className={`
@@ -177,16 +148,16 @@ function Step4Payment({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-body-lg font-bold text-card-foreground">
-                    {method.name}
+                    {destination.name}
                   </h3>
-                  {method.badge && (
+                  {destination.badge && (
                     <span className="px-2 py-0.5 bg-success text-success-foreground rounded-full text-caption font-bold">
-                      {method.badge}
+                      {destination.badge}
                     </span>
                   )}
                 </div>
                 <p className="text-body-sm text-muted-foreground">
-                  {method.description}
+                  {destination.description}
                 </p>
               </div>
             </motion.button>
@@ -195,7 +166,7 @@ function Step4Payment({
       </div>
 
       {/* Payment Details (Muncul saat dipilih) */}
-      {paymentMethod && selectedDetails && (
+      {selected && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,70 +176,48 @@ function Step4Payment({
             Detail Pembayaran
           </h3>
 
-          {paymentMethod === "TRANSFER" && Array.isArray(selectedDetails) && (
+          {selected.accounts.length > 0 && (
             <div className="space-y-3">
-              {selectedDetails.map((detail: any, index: number) => (
+              {selected.accounts.map((account) => (
                 <div
-                  key={index}
+                  key={`${account.label}-${account.value}`}
                   className="p-3 bg-card border border-border rounded-lg"
                 >
                   <p className="text-body font-semibold text-card-foreground">
-                    {detail.bank}
+                    {account.label}
                   </p>
                   <p className="text-body-sm text-muted-foreground">
-                    No. Rekening:{" "}
-                    <span className="font-mono">{detail.account}</span>
+                    Nomor: <span className="font-mono">{account.value}</span>
                   </p>
-                  <p className="text-body-sm text-muted-foreground">
-                    Atas Nama: {detail.name}
-                  </p>
+                  {account.holder && (
+                    <p className="text-body-sm text-muted-foreground">
+                      Atas Nama: {account.holder}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
-          {paymentMethod === "EWALLET" && Array.isArray(selectedDetails) && (
-            <div className="space-y-3">
-              {selectedDetails.map((detail: any, index: number) => (
-                <div
-                  key={index}
-                  className="p-3 bg-card border border-border rounded-lg"
-                >
-                  <p className="text-body font-semibold text-card-foreground">
-                    {detail.provider}
-                  </p>
-                  <p className="text-body-sm text-muted-foreground">
-                    Nomor: <span className="font-mono">{detail.number}</span>
-                  </p>
-                  <p className="text-body-sm text-muted-foreground">
-                    Atas Nama: {detail.name}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {paymentMethod === "QRIS" &&
-            typeof selectedDetails === "object" &&
-            selectedDetails &&
-            "qrCodeUrl" in selectedDetails && (
-              <div className="text-center">
-                <img
-                  src={selectedDetails.qrCodeUrl as string}
-                  alt="QRIS Code"
-                  className="w-48 h-48 mx-auto mb-4 border border-border rounded-lg"
-                />
+          {selected.qrImageUrl && (
+            <div className="text-center">
+              <Image
+                src={selected.qrImageUrl}
+                alt={`${selected.name} code`}
+                width={192}
+                height={192}
+                className="mx-auto mb-4 border border-border rounded-lg"
+              />
+              {selected.description && (
                 <p className="text-body-sm text-muted-foreground">
-                  {selectedDetails.description as string}
+                  {selected.description}
                 </p>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-          {paymentMethod === "COD" && (
-            <p className="text-body text-muted-foreground">
-              Bayar langsung ke kurir saat sepatu diambil. Tidak ada biaya
-              tambahan.
-            </p>
+          {selected.note && (
+            <p className="text-body text-muted-foreground">{selected.note}</p>
           )}
         </motion.div>
       )}

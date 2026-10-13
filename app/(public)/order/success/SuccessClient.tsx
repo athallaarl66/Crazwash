@@ -1,23 +1,33 @@
 // app/(public)/order/success/SuccessClient.tsx
+//
+// Presentation only: every value it renders comes from the stored order passed by
+// the server component, plus the configured contact destination.
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Home, MessageCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Home, MessageCircle } from "lucide-react";
 
-const ADMIN_PHONE = "6281234567890"; // ← GANTI NOMOR WA ADMIN LU!
+interface SuccessClientProps {
+  order: {
+    orderNumber: string;
+    customerName: string;
+    totalPrice: number;
+    paymentMethodLabel: string;
+  };
+  /** Empty when the business contact is not configured. */
+  whatsappNumber: string;
+}
 
-export default function SuccessClient() {
-  const searchParams = useSearchParams();
-  const orderNumber = searchParams.get("orderNumber");
-  const customerName = searchParams.get("customerName");
-  const totalPrice = searchParams.get("totalPrice");
-  const paymentMethod = searchParams.get("paymentMethod");
+export default function SuccessClient({
+  order,
+  whatsappNumber,
+}: SuccessClientProps) {
+  const { orderNumber, customerName, totalPrice, paymentMethodLabel } = order;
 
   // 🎉 CONFETTI
   useEffect(() => {
@@ -37,40 +47,27 @@ export default function SuccessClient() {
     return () => clearInterval(interval);
   }, []);
 
-  // Format payment method
-  const formatPaymentMethod = (method: string | null) => {
-    if (!method) return "N/A";
-    const methods: Record<string, string> = {
-      QRIS: "QRIS",
-      E_WALLET: "E-Wallet (GoPay/DANA/OVO)",
-      TRANSFER: "Transfer Bank",
-    };
-    return methods[method] || method;
-  };
-
   // Format currency
-  const formatCurrency = (value: string | null) => {
-    if (!value) return "Rp 0";
-    const num = parseFloat(value);
-    return new Intl.NumberFormat("id-ID", {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(num);
-  };
+    }).format(value);
 
-  // WhatsApp message dengan NAMA, bukan order number
   const waMessage = `Halo Admin 👋
 
-Saya *${customerName || "Customer"}* sudah melakukan pembayaran untuk pesanan cuci sepatu:
+Saya *${customerName}* sudah melakukan pembayaran untuk pesanan cuci sepatu:
 
 💰 Total Pembayaran: *${formatCurrency(totalPrice)}*
-💳 Metode Pembayaran: *${formatPaymentMethod(paymentMethod)}*
-📋 Order Number: ${orderNumber || "-"}
+💳 Metode Pembayaran: *${paymentMethodLabel || "-"}*
+📋 Order Number: ${orderNumber}
 
 Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima kasih! 🙏`;
 
-  const waLink = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(waMessage)}`;
+  const waLink = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`
+    : "";
 
   return (
     <div className="container-custom py-8 md:py-16">
@@ -116,7 +113,7 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
                   Order Number
                 </span>
                 <span className="font-mono font-bold text-blue-600 text-body-sm">
-                  {orderNumber || "-"}
+                  {orderNumber}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b">
@@ -132,7 +129,7 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
                   Metode Pembayaran
                 </span>
                 <span className="font-semibold text-body-sm">
-                  {formatPaymentMethod(paymentMethod)}
+                  {paymentMethodLabel || "-"}
                 </span>
               </div>
             </CardContent>
@@ -169,12 +166,28 @@ Saya akan kirim bukti pembayaran di bawah ini. Mohon segera diproses ya. Terima 
           transition={{ delay: 0.5 }}
           className="space-y-4"
         >
-          <Button asChild className="w-full h-12 text-base" size="lg">
-            <a href={waLink} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="mr-2 h-5 w-5" />
-              Kirim Bukti Bayar via WhatsApp
-            </a>
-          </Button>
+          {waLink ? (
+            <Button asChild className="w-full h-12 text-base" size="lg">
+              <a href={waLink} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Kirim Bukti Bayar via WhatsApp
+              </a>
+            </Button>
+          ) : (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-3 text-left">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-body font-semibold text-destructive mb-1">
+                  Kontak Admin Belum Dikonfigurasi
+                </p>
+                <p className="text-body-sm text-destructive/80">
+                  Nomor WhatsApp tujuan belum diatur, jadi tombol kirim bukti
+                  bayar belum bisa dipakai. Hubungi admin Crazwash melalui
+                  kontak yang Anda kenal.
+                </p>
+              </div>
+            </div>
+          )}
 
           <Link href="/">
             <Button variant="outline" className="w-full h-12">

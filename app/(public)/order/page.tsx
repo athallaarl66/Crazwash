@@ -4,6 +4,10 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import OrderForm from "./components/OrderForm";
 import { Package, Loader2 } from "lucide-react";
+import {
+  getBusinessConfig,
+  type PaymentDestination,
+} from "@/lib/business-config";
 
 // ==================== METADATA ====================
 export const metadata: Metadata = {
@@ -130,13 +134,51 @@ function OrderErrorState() {
   );
 }
 
+// ==================== PAYMENT CONFIG ERROR ====================
+function PaymentConfigErrorState() {
+  return (
+    <div className="container-custom py-8 md:py-12">
+      <div className="max-w-md mx-auto text-center card-custom p-8">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+          <Package className="h-8 w-8 text-destructive" />
+        </div>
+        <h2 className="text-h4 mb-2">Pembayaran Belum Tersedia</h2>
+        <p className="text-body text-muted-foreground mb-4">
+          Metode pembayaran belum dikonfigurasi, jadi pesanan belum bisa dibuat.
+          Silakan hubungi admin Crazwash.
+        </p>
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold
+                   hover:opacity-90 transition-opacity"
+        >
+          Kembali ke Home
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ==================== MAIN COMPONENT ====================
 export default async function OrderPage() {
   const products = await getActiveProducts();
 
+  // Configuration comes from the environment; a missing value must surface as an
+  // operational error, never as fallback account details.
+  let paymentDestinations: PaymentDestination[] = [];
+  try {
+    paymentDestinations = getBusinessConfig().paymentDestinations;
+  } catch (configError) {
+    console.error("Business configuration unavailable:", configError);
+  }
+
   // Handle error state
   if (!products || products.length === 0) {
     return <OrderErrorState />;
+  }
+
+  if (paymentDestinations.length === 0) {
+    return <PaymentConfigErrorState />;
   }
 
   return (
@@ -153,7 +195,10 @@ export default async function OrderPage() {
 
         {/* Order Form Suspense */}
         <Suspense fallback={<OrderFormSkeleton />}>
-          <OrderForm products={products} />
+          <OrderForm
+            products={products}
+            paymentDestinations={paymentDestinations}
+          />
         </Suspense>
       </div>
     </div>
