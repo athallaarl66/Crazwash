@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { adminGuardResult } from "@/lib/api-error-handler";
+import { notifyAdminsOfNewOrder } from "@/lib/orderService";
 import {
   ORDER_RATE_LIMIT,
   clientIdentifier,
@@ -261,6 +262,14 @@ export async function createOrderAction(formData: FormData): Promise<{
       orderId: order.id,
       orderNumber: order.orderNumber,
       customerId: order.customerId,
+    });
+
+    // Tell the operators. The writer lives in the order service and swallows its own
+    // failures, so an unwritable notification never fails the order.
+    await notifyAdminsOfNewOrder({
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      totalPrice: parseFloat(order.totalPrice.toString()),
     });
 
     // Revalidate both orders and customers pages

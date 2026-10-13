@@ -136,6 +136,27 @@ and an existing record is only linked — its role, name and address are never
 rewritten. Checkout never invents a substitute email address, so `User.email` is
 optional.
 
+### Operator notifications
+
+Creating an order writes one unread notification per active administrator, inside the
+order service (`notifyAdminsOfNewOrder` in `lib/orderService.ts`); the write is
+swallowed on failure, so an unwritable notification never fails the order. A
+notification row can only appear as that side effect: the notification endpoints
+(`/api/admin/notifications`) require an administrator session and only read rows or
+mark them read — nothing caller-facing inserts a notification. The console header
+refreshes the list every 15 seconds and whenever the window regains focus
+(`NOTIFICATION_POLL_MS` in `components/layout/AdminHeader.tsx`), and read state is
+stored on the row, so it survives a reload.
+
+Retention: the read path returns the newest 50 notifications per administrator
+(`take: 50`) and rows otherwise live until they are cleared — there is no automatic
+pruning, so the table grows with order volume (bounded in practice by the order rate
+limit above, which caps how often an order can be created). Trim old rows with:
+
+```sql
+DELETE FROM "Notification" WHERE "createdAt" < now() - interval '90 days';
+```
+
 ## Documentation
 
 Resolved issues are written up under `docs/issues/` — one document per issue, with the symptoms, the
@@ -177,6 +198,8 @@ npx prisma studio         # Open Prisma GUI
 
 - All monetary values use Prisma `Decimal` type to avoid floating point issues
 - Soft delete is used for `User` and `Product` (via `deletedAt` field)
+- A service's `duration` is stored and displayed in days (1-30) on every console surface: the admin create
+  and edit forms, the service table and the service detail page
 - `statusHistory` on `Order` is stored as a `Json[]` array for lightweight audit trail without an extra table
 - `User.email` is optional: checkout-created accounts have no email until one is set
 - Sessions issued before the role change carry a hardcoded role — rotate `NEXTAUTH_SECRET` when deploying so they are invalidated

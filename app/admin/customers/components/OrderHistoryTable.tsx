@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
+import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
 
 type CustomerOrder = {
   id: number;
@@ -16,33 +17,10 @@ type CustomerOrder = {
   completedDate: string | null;
 };
 
-const orderStatusColor: Record<OrderStatus, string> = {
-  PENDING: "bg-warning/10 text-warning border-warning/20",
-  CONFIRMED: "bg-chart-1/10 text-chart-1 border-chart-1/20",
-  PICKED_UP: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  IN_PROGRESS: "bg-warning/10 text-warning border-warning/20",
-  READY: "bg-success/10 text-success border-success/20",
-  COMPLETED: "bg-success/10 text-success border-success/20",
-  CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
-};
-
 const paymentStatusColor: Record<PaymentStatus, string> = {
   UNPAID: "bg-destructive/10 text-destructive border-destructive/20",
   PAID: "bg-success/10 text-success border-success/20",
   REFUNDED: "bg-muted text-muted-foreground border-muted",
-};
-
-const translateOrderStatus = (status: OrderStatus) => {
-  const translations: Record<OrderStatus, string> = {
-    PENDING: "Menunggu",
-    CONFIRMED: "Dikonfirmasi",
-    PICKED_UP: "Diambil",
-    IN_PROGRESS: "Diproses",
-    READY: "Siap",
-    COMPLETED: "Selesai",
-    CANCELLED: "Dibatalkan",
-  };
-  return translations[status] || status;
 };
 
 const translatePaymentStatus = (status: PaymentStatus) => {
@@ -123,9 +101,9 @@ export default function OrderHistoryTable({
               <td className="p-3 text-center">
                 <Badge
                   variant="secondary"
-                  className={orderStatusColor[order.status]}
+                  className={ORDER_STATUS_COLORS[order.status]}
                 >
-                  {translateOrderStatus(order.status)}
+                  {ORDER_STATUS_LABELS[order.status]}
                 </Badge>
               </td>
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { cn } from "@/lib/utils";
+import { cn, isActiveNavItem } from "@/lib/utils";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -82,7 +82,7 @@ export function AdminSidebar({
 
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto bg-card">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = isActiveNavItem(pathname, item.href);
           const Icon = item.icon;
 
           return (

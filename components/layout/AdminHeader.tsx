@@ -25,6 +25,13 @@ interface Notification {
   read: boolean;
 }
 
+/**
+ * How often an open console asks for new notifications. The console has a single
+ * operator, so the indicator is eventually consistent within this window instead of
+ * holding a websocket open on a serverless host.
+ */
+const NOTIFICATION_POLL_MS = 15000;
+
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,34 +39,59 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ← TAMBAH: FETCH REAL NOTIFICATIONS ON MOUNT
+  // Notifications arrive on the server (order creation), so the header refreshes the
+  // list on a short interval and whenever the window regains focus. A refused request
+  // means the session is gone: the operator is sent to sign-in, not to an API route.
   useEffect(() => {
+    let cancelled = false;
+
     const fetchNotifications = async () => {
       try {
         const res = await fetch("/api/admin/notifications");
-        if (res.ok) {
-          const data = await res.json();
-          setNotifications(
-            data.map((n: any) => ({
-              id: n.id,
-              title: n.title,
-              message: n.message,
-              timestamp: new Date(n.createdAt).toLocaleString("id-ID"),
-              read: n.read,
-            })),
-          );
+
+        if (res.status === 401) {
+          router.replace("/auth/login");
+          return;
         }
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        setNotifications(
+          data.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            timestamp: new Date(n.createdAt).toLocaleString("id-ID"),
+            read: n.read,
+          })),
+        );
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
       }
     };
+
     fetchNotifications();
-  }, []);
+
+    const interval = setInterval(fetchNotifications, NOTIFICATION_POLL_MS);
+    const onFocus = () => fetchNotifications();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/admin/search?q=${encodeURIComponent(searchQuery)}`);
+      // The console implements order search on its order list page; the header used to
+      // push to a cross-entity search route the application never implemented.
+      router.push(`/admin/orders?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -72,6 +104,10 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "markAsRead", notificationId: id }),
       });
+      if (res.status === 401) {
+        router.replace("/auth/login");
+        return;
+      }
       if (res.ok) {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
@@ -93,6 +129,10 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "markAllAsRead" }),
       });
+      if (res.status === 401) {
+        router.replace("/auth/login");
+        return;
+      }
       if (res.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       }
@@ -117,12 +157,12 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <Menu className="h-5 w-5 text-card-foreground" />
       </Button>
 
-      <div className="flex-1 max-w-md hidden sm:block">
+      <div className="flex-1 max-w-md">
         <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search orders, customers..."
+            placeholder="Search orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 h-9 text-body bg-card border-border text-card-foreground
@@ -132,16 +172,6 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         </form>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="sm:hidden hover:bg-muted"
-        aria-label="Search"
-      >
-        <Search className="h-5 w-5 text-card-foreground" />
-      </Button>
-
-      <div className="flex-1 sm:hidden" />
 
       <div className="flex items-center gap-2 md:gap-4">
         <Popover>

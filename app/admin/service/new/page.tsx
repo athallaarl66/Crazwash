@@ -16,7 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ProductCategory, CATEGORY_OPTIONS } from "@/lib/constants";
+import {
+  ProductCategory,
+  CATEGORY_OPTIONS,
+  SERVICE_DURATION_MAX_DAYS,
+  SERVICE_DURATION_MIN_DAYS,
+  SERVICE_DURATION_RANGE_LABEL,
+  SERVICE_DURATION_UNIT,
+} from "@/lib/constants";
 import {
   AlertCircle,
   Save,
@@ -61,8 +68,8 @@ export default function CreateServicePage() {
 
       // ✅ CHECK: Auth error
       if (response.status === 401) {
-        setError("Session expired. Redirecting to login...");
-        setTimeout(() => router.push("/api/auth/login"), 2000);
+        setError("Session expired. Mengalihkan ke halaman masuk...");
+        setTimeout(() => router.push("/auth/login"), 2000);
         return;
       }
 
@@ -287,21 +294,21 @@ export default function CreateServicePage() {
                       htmlFor="duration"
                       className="font-semibold flex items-center gap-2"
                     >
-                      <span>Durasi Pengerjaan (hari)</span>
+                      <span>Durasi Pengerjaan ({SERVICE_DURATION_UNIT})</span>
                       <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="duration"
                       name="duration"
                       type="number"
-                      min="1"
-                      max="30"
+                      min={SERVICE_DURATION_MIN_DAYS}
+                      max={SERVICE_DURATION_MAX_DAYS}
                       required
                       className="h-12"
                       placeholder="3"
                     />
                     <p className="text-sm text-gray-500">
-                      Estimasi waktu pengerjaan (1-30 hari)
+                      Estimasi waktu pengerjaan ({SERVICE_DURATION_RANGE_LABEL})
                     </p>
                   </div>
                 </div>

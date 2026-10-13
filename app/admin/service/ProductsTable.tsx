@@ -22,10 +22,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import { Edit, MoreVertical, Trash2, Eye, EyeOff } from "lucide-react";
 import { ProductCategory } from "@prisma/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, formatDuration } from "@/lib/constants";
 
 interface Product {
   id: number;
@@ -57,6 +59,7 @@ export default function ProductsTable({
     productId: number | null;
     productName: string;
   }>({ open: false, productId: null, productName: "" });
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteDialog.productId) return;
@@ -65,13 +68,14 @@ export default function ProductsTable({
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Layanan dihapus");
         onRefresh?.();
         setDeleteDialog({ open: false, productId: null, productName: "" });
       } else {
-        alert("Gagal hapus");
+        toast.error("Gagal menghapus layanan");
       }
     } catch {
-      alert("Error");
+      toast.error("Gagal menghapus layanan: koneksi bermasalah");
     }
   };
 
@@ -82,10 +86,16 @@ export default function ProductsTable({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !status }),
       });
-      if (res.ok) onRefresh?.();
-      else alert("Gagal ubah status");
+      if (res.ok) {
+        toast.success(
+          status ? "Layanan dinonaktifkan" : "Layanan diaktifkan",
+        );
+        onRefresh?.();
+      } else {
+        toast.error("Gagal mengubah status layanan");
+      }
     } catch {
-      alert("Error");
+      toast.error("Gagal mengubah status layanan: koneksi bermasalah");
     }
   };
 
@@ -100,17 +110,34 @@ export default function ProductsTable({
   };
 
   const handleBulkDelete = async () => {
-    if (!selected.length || !confirm("Hapus yang dipilih?")) return;
+    if (!selected.length) return;
+    setBulkDialogOpen(false);
+
     try {
-      await fetch("/api/admin/service/bulk-delete", {
+      const res = await fetch("/api/admin/service/bulk-delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: selected }),
       });
+
+      // The response decides the outcome: the console used to refresh as if the
+      // operation had succeeded whatever came back.
+      const result = await res.json().catch(() => null);
+
+      if (!res.ok || !result?.success) {
+        toast.error(
+          `Gagal menghapus layanan terpilih: ${
+            result?.error ?? `error ${res.status}`
+          }`,
+        );
+        return;
+      }
+
+      toast.success(`${selected.length} layanan dihapus`);
       onRefresh?.();
       setSelected?.([]);
     } catch {
-      alert("Error bulk delete");
+      toast.error("Gagal menghapus layanan terpilih: koneksi bermasalah");
     }
   };
 
@@ -121,7 +148,11 @@ export default function ProductsTable({
           <span className="text-body-sm text-muted-foreground">
             {selected.length} dipilih
           </span>
-          <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setBulkDialogOpen(true)}
+          >
             Hapus
           </Button>
         </div>
@@ -206,7 +237,7 @@ export default function ProductsTable({
                     {formatCurrency(parseFloat(product.price))}
                   </td>
                   <td className="p-3 text-foreground">
-                    {product.duration} hari
+                    {formatDuration(product.duration)}
                   </td>
                   <td className="p-3">
                     <Badge
@@ -278,6 +309,16 @@ export default function ProductsTable({
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={bulkDialogOpen}
+        onOpenChange={setBulkDialogOpen}
+        title="Hapus layanan terpilih?"
+        description={`${selected.length} layanan akan dihapus dan disembunyikan dari katalog. Tindakan ini tidak bisa dibatalkan dari sini.`}
+        confirmLabel="Hapus"
+        destructive
+        onConfirm={handleBulkDelete}
+      />
 
       <AlertDialog
         open={deleteDialog.open}

@@ -16,7 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ProductCategory, CATEGORY_OPTIONS } from "@/lib/constants";
+import {
+  ProductCategory,
+  CATEGORY_OPTIONS,
+  SERVICE_DURATION_MAX_DAYS,
+  SERVICE_DURATION_MIN_DAYS,
+  SERVICE_DURATION_RANGE_LABEL,
+  SERVICE_DURATION_UNIT,
+} from "@/lib/constants";
 import {
   AlertCircle,
   Save,
@@ -58,6 +65,13 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
   const fetchProduct = async () => {
     try {
       const response = await fetch(`/api/admin/service/${productId}`);
+
+      // An expired session must land on the sign-in page, not on an API endpoint.
+      if (response.status === 401) {
+        router.push("/auth/login");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch");
       const result = await response.json();
       if (result.success) setProduct(result.data);
@@ -94,6 +108,11 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
+      if (response.status === 401) {
+        router.push("/auth/login");
+        return;
+      }
 
       const result = await response.json();
 
@@ -295,7 +314,7 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                   htmlFor="duration"
                   className="font-semibold flex items-center gap-2 text-foreground"
                 >
-                  <span>Durasi Pengerjaan (hari)</span>
+                  <span>Durasi Pengerjaan ({SERVICE_DURATION_UNIT})</span>
                   <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
@@ -305,15 +324,15 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
                     name="duration"
                     type="number"
                     defaultValue={product.duration}
-                    min="1"
-                    max="168"
+                    min={SERVICE_DURATION_MIN_DAYS}
+                    max={SERVICE_DURATION_MAX_DAYS}
                     required
                     className="h-12 pl-11"
-                    placeholder="24"
+                    placeholder="3"
                   />
                 </div>
                 <p className="text-body-sm text-muted-foreground">
-                  Estimasi waktu dalam jam (1-168)
+                  Estimasi waktu pengerjaan ({SERVICE_DURATION_RANGE_LABEL})
                 </p>
               </div>
             </div>
