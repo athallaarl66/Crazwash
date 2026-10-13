@@ -8,6 +8,7 @@ only described as verified once it was executed.
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------- |
 | [Issue 01 — Customer-facing placeholders](issue-01-customer-facing-placeholders.md) | Checkout payment data, order confirmation, public pricing                                       | Implemented, 6 live checks pending |
 | [Issue 02 — Auth and admin authorization](issue-02-auth-and-admin-authorization.md) | Session role, admin guards, sign-in lockout, customer provisioning, rate limiting                | Implemented, 17 checks pending  |
+| [Issue 03 — Admin console UX](issue-03-admin-console-ux.md) | Order status model, order detail, change feedback, list summaries, notifications, navigation, service duration | Implemented, 15 checks pending |
 
 ## Convention
 

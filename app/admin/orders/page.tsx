@@ -49,17 +49,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     );
   }
 
-  const paidOrders = result.data.filter(
-    (o) => o.paymentStatus === "PAID",
-  ).length;
-
-  const unpaidOrders = result.data.filter(
-    (o) => o.paymentStatus === "UNPAID",
-  ).length;
-
-  const totalRevenue = result.data
-    .filter((o) => o.paymentStatus === "PAID")
-    .reduce((sum, order) => sum + Number(order.totalPrice), 0);
+  // The summary figures come from the service, computed over the whole filtered result
+  // set. Deriving them from result.data counted only the ten rows on this page.
+  const { paid, unpaid, paidRevenue } = result.summary;
 
   return (
     <div className="container-custom py-8 space-y-6">
@@ -73,11 +65,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         </div>
       </div>
       {/* QUICK STATS */}
+      {/* Every figure below counts the whole filtered result set, not the page. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="card-custom">
           <CardContent className="pt-6">
             <p className="text-body-sm font-medium text-muted-foreground">
-              Total Orders
+              Total Order (sesuai filter)
             </p>
             <p className="text-2xl font-bold text-primary">{result.total}</p>
           </CardContent>
@@ -86,19 +79,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <Card className="card-custom">
           <CardContent className="pt-6">
             <p className="text-body-sm font-medium text-muted-foreground">
-              Lunas
+              Lunas (sesuai filter)
             </p>
-            <p className="text-2xl font-bold text-success">{paidOrders}</p>
+            <p className="text-2xl font-bold text-success">{paid}</p>
           </CardContent>
         </Card>
 
         <Card className="card-custom">
           <CardContent className="pt-6">
             <p className="text-body-sm font-medium text-muted-foreground">
-              Belum Bayar
+              Belum Bayar (sesuai filter)
             </p>
             <p className="text-2xl font-bold text-destructive">
-              {unpaidOrders}
+              {unpaid}
             </p>
           </CardContent>
         </Card>
@@ -111,7 +104,8 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               <CardTitle className="text-h4">Daftar Pesanan</CardTitle>
               <p className="text-body-sm text-muted-foreground mt-1">
                 Menampilkan {result.data.length} dari {result.total} pesanan •
-                Revenue: Rp {totalRevenue.toLocaleString("id-ID")}
+                Total lunas (sesuai filter): Rp{" "}
+                {paidRevenue.toLocaleString("id-ID")}
               </p>
             </div>
             <div className="text-body-sm text-muted-foreground bg-muted px-3 py-1 rounded-md">

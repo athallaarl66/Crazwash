@@ -13,22 +13,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, FilterX, Filter } from "lucide-react";
+import {
+  ORDER_STATUS_OPTIONS,
+  PAYMENT_STATUS_OPTIONS,
+} from "@/lib/constants";
 
+// Both option lists come from the canonical definitions in lib/constants.ts, so the
+// filter offers exactly the statuses and payment states the data model defines. The
+// status filter used to list five of the seven statuses with its own labels.
 const STATUS_OPTIONS = [
   { value: "ALL", label: "Semua Status" },
-  { value: "PENDING", label: "Menunggu" },
-  { value: "CONFIRMED", label: "Dikonfirmasi" },
-  { value: "READY", label: "Siap / Diantar" },
-  { value: "COMPLETED", label: "Selesai" },
-  { value: "CANCELLED", label: "Dibatalkan" },
-] as const;
+  ...ORDER_STATUS_OPTIONS,
+];
 
 const PAYMENT_OPTIONS = [
   { value: "ALL", label: "Semua Pembayaran" },
-  { value: "PAID", label: "Lunas" },
-  { value: "UNPAID", label: "Belum Bayar" },
-  { value: "REFUNDED", label: "Dikembalikan" },
-] as const;
+  ...PAYMENT_STATUS_OPTIONS,
+];
 
 export default function OrderFilters() {
   const router = useRouter();

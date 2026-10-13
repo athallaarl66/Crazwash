@@ -2,6 +2,11 @@
 import { prisma } from "./prisma";
 import { Product, ProductCategory } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import {
+  SERVICE_DURATION_MAX_DAYS,
+  SERVICE_DURATION_MIN_DAYS,
+  SERVICE_DURATION_RANGE_LABEL,
+} from "./constants";
 
 // ============================================
 // TYPES
@@ -41,6 +46,33 @@ function generateSlug(name: string) {
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w-]+/g, "");
+}
+
+/**
+ * A service's duration is stored in days on every surface. Anything that is not a
+ * whole number of days inside the supported range is refused with a message that
+ * names the field and the accepted range, so an operator can act on it.
+ */
+export function parseDurationDays(value: unknown): number {
+  if (value === null || value === undefined || value === "") {
+    throw new Error(
+      `Durasi wajib diisi: masukkan angka bulat ${SERVICE_DURATION_RANGE_LABEL}.`,
+    );
+  }
+
+  const duration = Number(value);
+
+  if (
+    !Number.isInteger(duration) ||
+    duration < SERVICE_DURATION_MIN_DAYS ||
+    duration > SERVICE_DURATION_MAX_DAYS
+  ) {
+    throw new Error(
+      `Durasi tidak valid: masukkan angka bulat ${SERVICE_DURATION_RANGE_LABEL}.`,
+    );
+  }
+
+  return duration;
 }
 
 // ============================================
@@ -91,11 +123,14 @@ export async function createProduct(
   data: ProductInput,
 ): Promise<SerializedProduct> {
   // Validate required fields
-  if (!data.name || !data.price || !data.category || !data.duration) {
+  if (!data.name || !data.price || !data.category) {
     throw new Error(
       "Harap isi semua field yang wajib: nama, harga, kategori, durasi",
     );
   }
+
+  // The declared unit is days; an out-of-range or missing value never reaches storage.
+  const duration = parseDurationDays(data.duration);
 
   // Validate category
   if (!Object.values(ProductCategory).includes(data.category)) {
@@ -111,7 +146,7 @@ export async function createProduct(
       description: data.description?.trim() || null,
       price: new Decimal(data.price),
       category: data.category,
-      duration: Number(data.duration),
+      duration,
       isActive: data.isActive ?? true,
     },
   });
@@ -141,7 +176,8 @@ export async function updateProduct(
     updateData.description = data.description?.trim() || null;
   if (data.price !== undefined) updateData.price = new Decimal(data.price);
   if (data.category !== undefined) updateData.category = data.category;
-  if (data.duration !== undefined) updateData.duration = Number(data.duration);
+  if (data.duration !== undefined)
+    updateData.duration = parseDurationDays(data.duration);
   if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
   const product = await prisma.product.update({

@@ -1,6 +1,6 @@
 // app/admin/service/[id]/page.tsx
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getProductById } from "@/lib/productService";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, formatDuration } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
@@ -31,12 +31,9 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id: productId,
-      deletedAt: null,
-    },
-  });
+  // Read through the product service so the same serialization and duration handling
+  // applies here as in the service table; this page used to read Prisma directly.
+  const product = await getProductById(productId);
 
   if (!product) {
     notFound();
@@ -169,10 +166,10 @@ export default async function ProductDetailPage({
                         <p className="text-xl sm:text-2xl font-bold text-foreground">
                           {" "}
                           {/* Mobile-first */}
-                          {product.duration} jam
+                          {formatDuration(product.duration)}
                         </p>
                         <p className="text-body-sm text-muted-foreground">
-                          Estimasi waktu
+                          Estimasi waktu pengerjaan
                         </p>{" "}
                         {/* Pakai text-body-sm */}
                       </div>

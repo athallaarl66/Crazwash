@@ -54,3 +54,9 @@ export function truncate(text: string, length: number): string {
   if (text.length <= length) return text;
   return text.slice(0, length) + "...";
 }
+
+// A console navigation item stays active on its own nested routes, so a detail page
+// (/admin/orders/12) highlights the same item as its list page (/admin/orders).
+export function isActiveNavItem(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

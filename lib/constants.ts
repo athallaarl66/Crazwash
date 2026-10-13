@@ -42,6 +42,22 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   [OrderStatus.CANCELLED]: "bg-red-100 text-red-800",
 };
 
+// The canonical transition graph: which statuses an order may move to from a given
+// status. Every stored status appears here, so no status is unreachable, and the
+// console renders its selector from this map instead of its own copy.
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+  [OrderStatus.CONFIRMED]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
+  [OrderStatus.PICKED_UP]: [OrderStatus.IN_PROGRESS],
+  [OrderStatus.IN_PROGRESS]: [OrderStatus.READY],
+  [OrderStatus.READY]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+  [OrderStatus.COMPLETED]: [OrderStatus.READY],
+  [OrderStatus.CANCELLED]: [OrderStatus.PENDING],
+};
+
+/** Statuses whose transition destroys work already promised to the customer. */
+export const ORDER_STATUS_DESTRUCTIVE: OrderStatus[] = [OrderStatus.CANCELLED];
+
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   [ProductCategory.BASIC]: "Basic Wash",
   [ProductCategory.PREMIUM]: "Premium Clean",
@@ -79,3 +95,16 @@ export const PAYMENT_STATUS_OPTIONS = Object.values(PaymentStatus).map(
     label: PAYMENT_STATUS_LABELS[value],
   }),
 );
+
+// A service's processing duration is measured in days on every surface. The unit,
+// the accepted range and the formatter live here so the admin forms, the service
+// table, the service detail page and the customer-facing catalogue cannot drift.
+export const SERVICE_DURATION_UNIT = "hari";
+export const SERVICE_DURATION_MIN_DAYS = 1;
+export const SERVICE_DURATION_MAX_DAYS = 30;
+
+export const SERVICE_DURATION_RANGE_LABEL = `${SERVICE_DURATION_MIN_DAYS}-${SERVICE_DURATION_MAX_DAYS} ${SERVICE_DURATION_UNIT}`;
+
+export function formatDuration(days: number): string {
+  return `${days} ${SERVICE_DURATION_UNIT}`;
+}

@@ -36,8 +36,8 @@ export default function ProductsPage() {
     try {
       const res = await fetch("/api/admin/service"); // Fixed: Changed from /api/admin/products to /api/admin/service
       if (res.status === 401) {
-        setError("Session expired");
-        setTimeout(() => router.push("/api/auth/login"), 2000);
+        setError("Session expired. Mengalihkan ke halaman masuk...");
+        setTimeout(() => router.push("/auth/login"), 2000);
         return;
       }
       if (!res.headers.get("content-type")?.includes("application/json")) {
