@@ -44,7 +44,7 @@ function Step3PickupInfo({
       className="space-y-6"
     >
       {/* Header */}
-      <div className="card-custom p-4 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5">
+      <div className="card-custom p-4 md:p-6">
         <h2 className="text-h3 mb-2">Informasi Pickup</h2>
         <p className="text-body text-muted-foreground">
           Tentukan lokasi dan waktu pengambilan sepatu
@@ -67,7 +67,7 @@ function Step3PickupInfo({
             name="address"
             value={formData.address}
             onChange={onChange}
-            placeholder="Contoh: Jl. Sudirman No. 123, RT 01/RW 02, Kebayoran Baru, Jakarta Selatan"
+            placeholder="Contoh: Jl. Arcamanik No. 123, RT 01/RW 02, Arcamanik, Bandung"
             required
             rows={4}
             className="w-full px-4 py-3 rounded-lg border-2 border-border
@@ -136,7 +136,7 @@ function Step3PickupInfo({
         {/* Info Box */}
         <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg">
           <p className="text-body-sm text-warning font-medium mb-2">
-            ⏰ Jam Operasional Pickup
+            Jam Operasional Pickup
           </p>
           <p className="text-body-sm text-card-foreground">
             Senin - Sabtu: 09.00 - 17.00 WIB
@@ -167,7 +167,7 @@ function Step3PickupInfo({
             transition-all duration-200
             ${
               canProceed
-                ? "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+                ? "bg-primary text-primary-foreground hover:opacity-90"
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             }
           `}

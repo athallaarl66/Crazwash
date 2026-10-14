@@ -57,7 +57,7 @@ export default function LoginView() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Cuci Sepatu</CardTitle>
+        <CardTitle className="text-2xl">Crazwash Admin</CardTitle>
         <CardDescription>Login ke admin dashboard</CardDescription>
       </CardHeader>
 

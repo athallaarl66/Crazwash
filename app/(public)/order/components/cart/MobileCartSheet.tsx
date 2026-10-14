@@ -9,7 +9,6 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowRight,
-  Sparkles,
   Trash2,
 } from "lucide-react";
 
@@ -71,7 +70,7 @@ function MobileCartSheet({
             style={{ boxShadow: "var(--shadow-xl)" }}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-primary to-accent p-4">
+            <div className="sticky top-0 bg-primary p-4">
               <div className="flex items-center justify-between text-primary-foreground mb-2">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
@@ -94,8 +93,7 @@ function MobileCartSheet({
               {items.map((item, index) => (
                 <div
                   key={`${item.id}-${index}`}
-                  className="p-3 bg-gradient-to-r from-primary/5 to-accent/10 rounded-xl 
-                           border-2 border-primary/20"
+                  className="p-3 bg-card rounded-xl border-2 border-border"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -150,16 +148,15 @@ function MobileCartSheet({
                     onCheckout();
                   }}
                   disabled={!canCheckout}
-                  className="w-full h-12 bg-gradient-to-r from-primary to-accent 
+                  className="w-full h-12 bg-primary
                            text-primary-foreground font-bold rounded-lg
                            flex items-center justify-center gap-2
-                           hover:opacity-90 transition-all
+                           hover:opacity-90 transition-opacity
                            disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
-                    boxShadow: canCheckout ? "var(--shadow-lg)" : "none",
+                    boxShadow: canCheckout ? "var(--shadow-md)" : "none",
                   }}
                 >
-                  <Sparkles className="h-5 w-5" />
                   Lanjut ke Checkout
                   <ArrowRight className="h-5 w-5" />
                 </button>
@@ -174,8 +171,8 @@ function MobileCartSheet({
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
-          style={{ boxShadow: "var(--shadow-xl)" }}
+          className="bg-primary text-primary-foreground"
+          style={{ boxShadow: "var(--shadow-lg)" }}
           onClick={() => setIsExpanded(true)}
         >
           <div className="p-4">

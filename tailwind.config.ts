@@ -5,6 +5,12 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  // The palette is light-only: globals.css defines no `.dark` values and nothing
+  // puts `.dark` on the document. Under the default "media" strategy every
+  // `dark:` utility in the UI primitives fires on a dark-mode browser and paints
+  // unreadable pairs (e.g. the active tab turned navy-on-navy). Keying them to a
+  // class that is never applied keeps the shipped theme intact.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {

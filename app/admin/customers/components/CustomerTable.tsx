@@ -109,10 +109,12 @@ export default function CustomersTable({
                 </td>
 
                 <td className="p-3 text-muted-foreground">
-                  {formatDistanceToNow(new Date(c.lastOrderDate), {
-                    addSuffix: true,
-                    locale: idLocale,
-                  })}
+                  {c.lastOrderDate
+                    ? formatDistanceToNow(new Date(c.lastOrderDate), {
+                        addSuffix: true,
+                        locale: idLocale,
+                      })
+                    : "Belum ada pesanan"}
                 </td>
 
                 {/* REMOVE: Action td */}

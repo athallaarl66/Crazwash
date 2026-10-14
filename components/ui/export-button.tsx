@@ -54,7 +54,9 @@ export default function ExportButton({
             c.totalOrders,
             c.totalSpending,
             c.status,
-            new Date(c.lastOrderDate).toLocaleDateString("id-ID"),
+            c.lastOrderDate
+              ? new Date(c.lastOrderDate).toLocaleDateString("id-ID")
+              : "-",
           ]);
           break;
 

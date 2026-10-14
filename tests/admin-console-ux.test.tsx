@@ -168,9 +168,32 @@ test("an order stored in a processing status is displayed as that status", async
 test("order detail shows the fulfilment fields and degrades without notes or proof", async () => {
   const { renderToStaticMarkup } = await import("react-dom/server");
   const React = (await import("react")).default;
+  // The detail view now carries the console's live status and payment controls,
+  // which are client components and read the App Router context.
+  const { AppRouterContext } = await import(
+    "next/dist/shared/lib/app-router-context.shared-runtime"
+  );
   const { default: OrderDetailView } = await import(
     "@/app/admin/orders/[id]/OrderDetailView"
   );
+
+  const router = {
+    push: () => {},
+    replace: () => {},
+    refresh: () => {},
+    back: () => {},
+    forward: () => {},
+    prefetch: () => {},
+  } as unknown as AppRouterInstance;
+
+  const renderDetail = (order: OrderWithServices) =>
+    renderToStaticMarkup(
+      React.createElement(
+        AppRouterContext.Provider,
+        { value: router },
+        React.createElement(OrderDetailView, { order }),
+      ),
+    );
 
   const complete = {
     id: 7,
@@ -206,9 +229,7 @@ test("order detail shows the fulfilment fields and degrades without notes or pro
     ],
   } as unknown as OrderWithServices;
 
-  const filled = renderToStaticMarkup(
-    React.createElement(OrderDetailView, { order: complete }),
-  );
+  const filled = renderDetail(complete);
 
   for (const expected of [
     "Jl. Merdeka 1",
@@ -238,9 +259,7 @@ test("order detail shows the fulfilment fields and degrades without notes or pro
     statusHistory: [],
   } as unknown as OrderWithServices;
 
-  const degraded = renderToStaticMarkup(
-    React.createElement(OrderDetailView, { order: sparse }),
-  );
+  const degraded = renderDetail(sparse);
 
   assert.ok(!degraded.includes("Catatan Internal"));
   assert.ok(!degraded.includes("Catatan Pelanggan"));

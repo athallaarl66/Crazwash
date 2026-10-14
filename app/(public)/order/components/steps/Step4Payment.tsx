@@ -82,7 +82,7 @@ function Step4Payment({
       className="space-y-6"
     >
       {/* Header */}
-      <div className="card-custom p-4 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5">
+      <div className="card-custom p-4 md:p-6">
         <h2 className="text-h3 mb-2">Metode Pembayaran</h2>
         <p className="text-body text-muted-foreground">
           Pilih cara pembayaran yang Anda inginkan
@@ -99,19 +99,17 @@ function Step4Payment({
             <motion.button
               key={destination.method}
               onClick={() => onPaymentMethodChange(destination.method)}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
               className={`
-                w-full p-4 md:p-5 rounded-xl border-2 transition-all duration-200
+                w-full p-4 md:p-5 rounded-xl border-2 transition-colors duration-200
                 flex items-center gap-4 text-left
                 ${
                   isSelected
-                    ? "bg-gradient-to-r from-primary/10 to-accent/10 border-primary"
+                    ? "bg-card border-primary"
                     : "bg-card border-border hover:border-primary/40"
                 }
               `}
               style={{
-                boxShadow: isSelected ? "var(--shadow-lg)" : "var(--shadow-sm)",
+                boxShadow: isSelected ? "var(--shadow-md)" : "none",
               }}
             >
               {/* Radio Indicator */}
@@ -170,7 +168,7 @@ function Step4Payment({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card-custom p-4 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5"
+          className="card-custom p-4 md:p-6"
         >
           <h3 className="text-h4 mb-4 text-card-foreground">
             Detail Pembayaran
@@ -242,8 +240,8 @@ function Step4Payment({
       {/* Info Box */}
       <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
         <p className="text-body-sm text-info">
-          ℹ️ Konfirmasi pembayaran akan dikirim melalui WhatsApp setelah Anda
-          menyelesaikan pesanan
+        Konfirmasi pembayaran akan dikirim melalui WhatsApp setelah Anda
+        menyelesaikan pesanan
         </p>
       </div>
 
@@ -270,12 +268,12 @@ function Step4Payment({
             transition-all duration-200
             ${
               canSubmit && !loading
-                ? "bg-gradient-to-r from-success to-success/80 text-success-foreground hover:opacity-90"
+                ? "bg-success text-success-foreground hover:opacity-90"
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             }
           `}
           style={{
-            boxShadow: canSubmit && !loading ? "var(--shadow-lg)" : "none",
+            boxShadow: canSubmit && !loading ? "var(--shadow-md)" : "none",
           }}
         >
           {loading ? (

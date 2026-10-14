@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "pesan cuci sepatu",
     "order cuci sepatu",
     "booking cuci sepatu",
-    "layanan cuci sepatu Jakarta",
+    "layanan cuci sepatu Bandung",
     "deep clean sepatu",
   ],
   openGraph: {

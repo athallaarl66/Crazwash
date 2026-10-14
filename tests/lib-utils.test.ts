@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatCurrency, generateOrderNumber } from "../lib/utils";
+import { formatCurrency, generateOrderNumber, normalizePhone } from "../lib/utils";
 
 /* -------------------------------------------------- currency formatting */
 
@@ -79,4 +79,27 @@ test("generateOrderNumber does not repeat within one millisecond", () => {
     numbers.every((number) => number.startsWith(prefix)),
     "the date part is not the current day",
   );
+});
+
+/* --------------------------------------------------- phone normalisation */
+
+test("normalizePhone keeps only the local subscriber number", () => {
+  // The checkout shows a fixed +62 prefix, so a number typed or pasted with a
+  // country code or a leading zero must not be stored as typed.
+  for (const input of [
+    "8123456789",
+    "08123456789",
+    "+62 812-3456-789",
+    "628123456789",
+    "0812 3456 789",
+    "008123456789",
+  ]) {
+    assert.equal(
+      normalizePhone(input),
+      "8123456789",
+      `${input} was not normalised`,
+    );
+  }
+
+  assert.equal(normalizePhone(""), "");
 });
