@@ -31,7 +31,7 @@ See `proposal.md` - Why. Facts that shape the approach:
 Install dependencies, capture `tsc --noEmit` and lint output, and treat new errors as the only signal. Without this the deletions are guesswork.
 
 **2. Delete dead routes before dead helpers.**
-`app/api/orders/route.ts`, `app/api/orders/[id]/route.ts`, and `app/api/service_get/route.ts` go first, because they are the only code paths that legitimately consume the duplicate order-creation logic and the product serializers. Note for coordination: `PATCH /api/orders/[id]` is undocumented, unauthenticated, and reachable; if `harden-auth-and-admin-guards` is applied first it will be guarded there, and this change deletes it regardless - deleting it is the stronger fix.
+`app/api/orders/route.ts`, `app/api/orders/[id]/route.ts`, and `app/api/service_get/route.ts` go first, because they are the only code paths that legitimately consume the duplicate order-creation logic and the product serializers. Note for coordination: `PATCH /api/orders/[id]` is undocumented and reachable; at the commit this change is based on (`b67d026`) it is already guarded by `adminGuardResponse()`, so deleting it removes a dead path rather than closing an exposure.
 
 **3. Prefer Prisma's generated types over hand-written interfaces.**
 Local `Product` declarations (seven of them today) are replaced by the generated model types, narrowed with `Pick`/`Omit` for serialized shapes. Hand-copied shapes are what let `stock` survive in `types/product.ts` after the schema dropped it.
