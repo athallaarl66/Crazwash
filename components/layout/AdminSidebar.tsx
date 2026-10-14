@@ -109,7 +109,6 @@ export function AdminSidebar({
             variant="ghost"
             size="sm"
             className="w-full justify-start cursor-pointer text-card-foreground hover:bg-muted hover:text-primary"
-            suppressHydrationWarning
           >
             <LayoutDashboard className="h-4 w-4 mr-2" />
             Public Site
@@ -122,7 +121,6 @@ export function AdminSidebar({
           onClick={handleLogout}
           disabled={isLoggingOut}
           className="w-full justify-start cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
-          suppressHydrationWarning
         >
           {isLoggingOut ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />

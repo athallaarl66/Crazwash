@@ -2,6 +2,7 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Package, ShoppingBag } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface Props {
   data: {
@@ -111,13 +112,7 @@ export default function TopProducts({ data, loading = false }: Props) {
 
               {/* Average per shoe */}
               <div className="text-caption text-muted-foreground ml-10">
-                Rata-rata: Rp{" "}
-                {(product.revenue / product.totalShoes).toLocaleString(
-                  "id-ID",
-                  {
-                    maximumFractionDigits: 0,
-                  },
-                )}{" "}
+                Rata-rata: {formatCurrency(product.revenue / product.totalShoes)}{" "}
                 / sepatu
               </div>
             </div>
@@ -128,8 +123,7 @@ export default function TopProducts({ data, loading = false }: Props) {
                 Total Revenue
               </div>
               <div className="font-bold text-success text-xl sm:text-2xl">
-                {" "}
-                Rp {product.revenue.toLocaleString("id-ID")}
+                {formatCurrency(product.revenue)}
               </div>
             </div>
           </div>

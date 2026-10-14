@@ -15,17 +15,10 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { CategoryTabs } from "../shared/CategoryTabs";
 import { ProductCard } from "../shared/ProductCard";
 import { ArrowRight } from "lucide-react";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  category: string;
-}
+import type { ProductWithNumericPrice } from "@/lib/productService";
 
 interface Step1Props {
-  products: Product[];
+  products: ProductWithNumericPrice[];
   quantities: Record<number, number>;
   onQuantityChange: (id: number, delta: number) => void;
   onNext: () => void;
@@ -74,7 +67,7 @@ function Step1ServiceSelection({
       acc[product.category].push(product);
       return acc;
     },
-    {} as Record<string, Product[]>,
+    {} as Record<string, ProductWithNumericPrice[]>,
   );
 
   return (

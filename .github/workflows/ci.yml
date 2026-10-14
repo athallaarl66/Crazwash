@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The generated Prisma client is what `lib/prisma.ts` imports, so it has to
+      # exist before the typecheck runs. No database is needed for generation.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # Writes next-env.d.ts and .next/types, which tsconfig.json includes.
+      - name: Generate Next.js types
+        run: npx next typegen
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # The repository still carries pre-existing lint findings (74 problems when
+      # this workflow was added: 54 errors, 20 warnings), so this step reports them
+      # without failing the job. Drop continue-on-error once they are cleared.
+      - name: Lint
+        continue-on-error: true
+        run: npm run lint
+
+      # `tests/order-creation.test.ts` skips itself when DATABASE_URL is absent, so
+      # this job needs no database service.
+      - name: Test
+        run: npm test

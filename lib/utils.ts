@@ -36,17 +36,20 @@ export function formatDateTime(date: Date | string): string {
   }).format(d);
 }
 
-// Generate order number: ORD-20250104-001
+// Generate order number: ORD-20250104-3f9a1c07. The suffix uses the platform random
+// source rather than Math.random(), and the unique index on `orderNumber` stays the
+// arbiter: `createOrder` retries when the index reports a collision.
 export function generateOrderNumber(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const random = Math.floor(Math.random() * 1000)
-    .toString()
-    .padStart(3, "0");
+  const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
+  const suffix = globalThis.crypto
+    .getRandomValues(new Uint32Array(1))[0]
+    .toString(16)
+    .padStart(8, "0");
 
-  return `ORD-${year}${month}${day}-${random}`;
+  return `ORD-${date}-${suffix}`;
 }
 
 // Truncate text with ellipsis

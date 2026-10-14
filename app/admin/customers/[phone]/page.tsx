@@ -25,6 +25,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import OrderHistoryTable from "@/app/admin/customers/components/OrderHistoryTable";
+import { formatCurrency } from "@/lib/utils";
 import ExportButton from "@/components/ui/export-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -43,14 +44,6 @@ const statusConfig: Record<string, { color: string; label: string }> = {
     label: "Tidak Aktif",
   },
 };
-
-const formatRupiah = (amount: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
 
 export default async function CustomerDetailPage({
   params,
@@ -202,7 +195,7 @@ export default async function CustomerDetailPage({
                     Total Belanja
                   </p>
                   <p className="text-3xl font-bold">
-                    {formatRupiah(totalSpending)}
+                    {formatCurrency(totalSpending)}
                   </p>
                   <p className="text-success-foreground/60 text-caption">
                     akumulasi pembayaran
@@ -224,7 +217,7 @@ export default async function CustomerDetailPage({
                     Rata-rata per Order
                   </p>
                   <p className="text-3xl font-bold">
-                    {formatRupiah(averageOrderValue)}
+                    {formatCurrency(averageOrderValue)}
                   </p>
                   <p className="text-chart-2-foreground/60 text-caption">
                     nilai transaksi rata-rata

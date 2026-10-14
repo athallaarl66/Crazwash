@@ -60,50 +60,6 @@
     --chart-5: #e67e22;
   }
 
-  /* ================= DARK MODE ================= */
-  .dark {
-    --background: #0c2c55;
-    --foreground: #ededce;
-
-    --primary: #629fad;
-    --primary-foreground: #0c2c55;
-
-    --secondary: #296374;
-    --secondary-foreground: #ffffff;
-
-    --accent: #629fad;
-    --accent-foreground: #0c2c55;
-
-    --card: #102f5c;
-    --card-foreground: #ededce;
-
-    --popover: #102f5c;
-    --popover-foreground: #ededce;
-
-    --muted: #1a3b66;
-    --muted-foreground: #a0b8cc;
-
-    --destructive: #b91c1c;
-    --destructive-foreground: #ffffff;
-
-    --border: rgba(255, 255, 255, 0.1);
-    --input: rgba(255, 255, 255, 0.15);
-    --ring: #629fad;
-
-    /* Shadow untuk dark mode */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
-
-    /* Chart colors dark mode */
-    --chart-1: #629fad;
-    --chart-2: #296374;
-    --chart-3: #f5b041;
-    --chart-4: #e67e22;
-    --chart-5: #d35400;
-  }
-
   /* ================= BASE STYLES ================= */
   * {
     @apply border-border;

@@ -17,42 +17,34 @@ import {
   Zap,
   Star,
 } from "lucide-react";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: string;
-  category: "BASIC" | "PREMIUM" | "DEEP" | "TREATMENT";
-  duration: number;
-}
+import type { ServiceCatalogItem } from "@/lib/productService";
 
 interface ServicesViewProps {
-  products: Product[];
+  products: ServiceCatalogItem[];
 }
 
 // BEFORE/AFTER DATA
 const BEFORE_AFTER = [
   {
     id: 1,
-    before: "/images/HCL_25.jpg",
-    after: "/images/HCL_26.jpg",
+    before: "/images/HCL_25.webp",
+    after: "/images/HCL_26.webp",
     title: "Deep Clean Premium",
     description: "Sepatu putih yang menguning kembali bersih",
     category: "Deep Cleaning",
   },
   {
     id: 2,
-    before: "/images/HCL_27.jpg",
-    after: "/images/HCL_28.jpg",
+    before: "/images/HCL_27.webp",
+    after: "/images/HCL_28.webp",
     title: "Leather Restoration",
     description: "Perawatan sepatu kulit yang kusam",
     category: "Premium Care",
   },
   {
     id: 3,
-    before: "/images/HCL_35.jpg",
-    after: "/images/HCL_37.jpg",
+    before: "/images/HCL_35.webp",
+    after: "/images/HCL_37.webp",
     title: "Unyellow Treatment",
     description: "Menghilangkan warna kuning pada sole",
     category: "Special Treatment",
@@ -255,8 +247,9 @@ export default function ServicesView({ products }: ServicesViewProps) {
                         <Image
                           src={BEFORE_AFTER[beforeAfterIndex].before}
                           alt="Before"
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          width={1600}
+                          height={1061}
+                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                           sizes="(max-width: 768px) 100vw, 50vw"
                         />
                         <div className="absolute inset-0 bg-destructive/0 group-hover:bg-destructive/10 transition-colors duration-300"></div>
@@ -276,8 +269,9 @@ export default function ServicesView({ products }: ServicesViewProps) {
                         <Image
                           src={BEFORE_AFTER[beforeAfterIndex].after}
                           alt="After"
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          width={1600}
+                          height={1061}
+                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                           sizes="(max-width: 768px) 100vw, 50vw"
                         />
                         <div className="absolute inset-0 bg-success/0 group-hover:bg-success/10 transition-colors duration-300"></div>

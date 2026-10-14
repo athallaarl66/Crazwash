@@ -3,16 +3,11 @@
 
 import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
+import type { ProductWithNumericPrice } from "@/lib/productService";
 import { CheckCircle2, Minus, Plus } from "lucide-react";
 
 interface ProductCardProps {
-  product: {
-    id: number;
-    name: string;
-    description: string | null;
-    price: number;
-    category: string;
-  };
+  product: ProductWithNumericPrice;
   quantity: number;
   onQuantityChange: (id: number, delta: number) => void;
   index: number;

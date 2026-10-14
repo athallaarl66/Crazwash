@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import CustomersTable from "./CustomerTable";
 import { Customer } from "../types";
 import ExportButton from "@/components/ui/export-button";
+import { formatCurrency } from "@/lib/utils";
 
 export default function CustomersClient({
   customers,
@@ -77,7 +78,7 @@ export default function CustomersClient({
               Total Revenue
             </p>
             <p className="text-2xl font-bold text-primary">
-              Rp {totalRevenue.toLocaleString("id-ID")}
+              {formatCurrency(totalRevenue)}
             </p>
           </CardContent>
         </Card>

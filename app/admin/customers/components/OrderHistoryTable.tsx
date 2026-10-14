@@ -5,6 +5,7 @@ import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatCurrency } from "@/lib/utils";
 
 type CustomerOrder = {
   id: number;
@@ -37,14 +38,6 @@ export default function OrderHistoryTable({
 }: {
   orders: CustomerOrder[];
 }) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (orders.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">

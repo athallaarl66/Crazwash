@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     siteName: "Crazwash",
     images: [
       {
-        url: "/images/crazwash.jpg", // ← BENARIN PATH (ada "s"-nya)
+        url: "/images/crazwash.jpg",
         width: 800,
         height: 600,
         alt: "Crazwash - Cuci Sepatu & Tas Bandung",
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/images/crazwash.jpg", // ← BENARIN PATH
-    apple: "/images/crazwash.jpg", // ← BENARIN PATH
+    icon: "/images/crazwash.jpg",
+    apple: "/images/crazwash.jpg",
   },
   manifest: "/site.webmanifest",
 };
@@ -47,9 +47,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id">
       <head>
-        {/* ← TAMBAHIN INI buat favicon */}
         <link
           rel="icon"
           href="/images/crazwash.jpg"

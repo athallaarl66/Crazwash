@@ -323,7 +323,7 @@ test("summary figures are computed over the filtered result set", () => {
   assert.match(page, /result\.summary/, "the page does not read the service summary");
   assert.doesNotMatch(page, /result\.data\.filter\(/, "the page derives figures from the current page");
   assert.match(page, /sesuai filter/, "the summary labels do not state the population they cover");
-  assert.match(page, /paidRevenue\.toLocaleString/, "the paid total is not rendered");
+  assert.match(page, /formatCurrency\(paidRevenue\)/, "the paid total is not rendered");
 });
 
 /* ------------------------------------------------------------- 4. notifications */
@@ -338,7 +338,18 @@ test("order creation writes one notification per active administrator", () => {
   assert.match(service, /catch \(error\) \{\s*console\.error\("Failed to write order notifications:/);
 
   const creation = read("actions", "orderActions.ts");
-  assert.match(creation, /await notifyAdminsOfNewOrder\(\{/, "the creation path never notifies");
+  assert.match(
+    creation,
+    /await createOrder\(\{/,
+    "the checkout action does not use the single creation path",
+  );
+  // The notification is written inside the order service, so every caller of the
+  // creation path notifies.
+  assert.match(
+    service,
+    /export async function createOrder\([\s\S]*await notifyAdminsOfNewOrder\(\{/,
+    "the order-creation path never notifies",
+  );
 });
 
 test("no caller-facing endpoint can create a notification and the read path is capped", () => {

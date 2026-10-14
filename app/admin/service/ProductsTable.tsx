@@ -25,23 +25,12 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { Edit, MoreVertical, Trash2, Eye, EyeOff } from "lucide-react";
-import { ProductCategory } from "@prisma/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CATEGORY_LABELS, formatDuration } from "@/lib/constants";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: string;
-  category: ProductCategory;
-  duration: number;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { ProductListItem } from "@/lib/productService";
 
 interface ProductsTableProps {
-  products: Product[];
+  products: ProductListItem[];
   onRefresh?: () => void;
   selected?: number[];
   setSelected?: (ids: number[]) => void;

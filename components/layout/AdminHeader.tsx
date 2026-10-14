@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect } from "react"; // ← TAMBAH useEffect
+import { useState, useEffect } from "react";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -95,7 +95,6 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     }
   };
 
-  // ← UPDATE: MARK AS READ WITH API CALL
   const markAsRead = async (id: string) => {
     setLoading(true);
     try {
@@ -120,7 +119,6 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     }
   };
 
-  // ← UPDATE: MARK ALL AS READ WITH API CALL
   const markAllAsRead = async () => {
     setLoading(true);
     try {
@@ -181,7 +179,6 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
               size="icon"
               className="relative hover:bg-muted"
               aria-label="Notifications"
-              suppressHydrationWarning
             >
               <Bell className="h-5 w-5 text-card-foreground" />
               {unreadCount > 0 && (
