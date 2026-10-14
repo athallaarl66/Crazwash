@@ -3,6 +3,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, User, Phone, Mail } from "lucide-react";
+import { normalizePhone } from "@/lib/utils";
 
 interface Step2Props {
   formData: {
@@ -25,6 +26,13 @@ function Step2CustomerInfo({
   onNext,
   canProceed,
 }: Step2Props) {
+  // The visible prefix is always +62, so the field only ever holds the local part:
+  // a pasted "0812..." or "+62812..." is trimmed as it is typed.
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.value = normalizePhone(e.target.value);
+    onChange(e);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -33,7 +41,7 @@ function Step2CustomerInfo({
       className="space-y-6"
     >
       {/* Header */}
-      <div className="card-custom p-4 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5">
+      <div className="card-custom p-4 md:p-6">
         <h2 className="text-h3 mb-2">Data Diri</h2>
         <p className="text-body text-muted-foreground">
           Isi data diri Anda untuk proses pesanan
@@ -84,7 +92,7 @@ function Step2CustomerInfo({
               id="customerPhone"
               name="customerPhone"
               value={formData.customerPhone}
-              onChange={onChange}
+              onChange={handlePhoneChange}
               placeholder="8123456789"
               required
               className="flex-1 px-4 py-3 rounded-lg border-2 border-border
@@ -127,7 +135,7 @@ function Step2CustomerInfo({
         {/* Info Box */}
         <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
           <p className="text-body-sm text-info">
-            ℹ️ Data Anda aman dan hanya digunakan untuk proses pemesanan
+            Data Anda aman dan hanya digunakan untuk proses pemesanan
           </p>
         </div>
       </div>
@@ -153,7 +161,7 @@ function Step2CustomerInfo({
             transition-all duration-200
             ${
               canProceed
-                ? "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+                ? "bg-primary text-primary-foreground hover:opacity-90"
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             }
           `}

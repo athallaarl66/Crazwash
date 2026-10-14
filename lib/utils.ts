@@ -63,3 +63,11 @@ export function truncate(text: string, length: number): string {
 export function isActiveNavItem(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+// Checkout shows a fixed +62 prefix, so only the local part is stored. A pasted
+// number that already carries the country code or a leading zero is normalised
+// instead of being kept as typed, which would store "+620812...".
+export function normalizePhone(input: string): string {
+  const digits = input.replace(/\D/g, "");
+  return digits.replace(/^62/, "").replace(/^0+/, "");
+}

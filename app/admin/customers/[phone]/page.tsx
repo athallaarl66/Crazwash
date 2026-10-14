@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import {
   getCustomerByPhone,
   getOrdersByPhone,
-  getCompletedPaidOrdersByPhone,
 } from "@/lib/customerService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,12 +56,11 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  let customer, allOrders, completedPaidOrders;
+  let customer, allOrders;
   try {
-    [customer, allOrders, completedPaidOrders] = await Promise.all([
+    [customer, allOrders] = await Promise.all([
       getCustomerByPhone(phone),
       getOrdersByPhone(phone),
-      getCompletedPaidOrdersByPhone(phone),
     ]);
   } catch (error) {
     return (
@@ -94,12 +92,17 @@ export default async function CustomerDetailPage({
   const statusInfo = statusConfig[customer.status];
   const isNoPhoneUser = phone.startsWith("NO-PHONE-");
 
-  const totalOrders = completedPaidOrders.length;
-  const totalSpending = completedPaidOrders.reduce(
+  // Same definition the customer list uses: every non-cancelled order counts, and
+  // spending is what was actually paid.
+  const activeOrders = allOrders.filter((o) => o.status !== "CANCELLED");
+  const paidOrders = activeOrders.filter((o) => o.paymentStatus === "PAID");
+  const totalOrders = activeOrders.length;
+  const totalSpending = paidOrders.reduce(
     (sum, o) => sum + Number(o.totalPrice),
     0,
   );
-  const averageOrderValue = totalOrders > 0 ? totalSpending / totalOrders : 0;
+  const averageOrderValue =
+    paidOrders.length > 0 ? totalSpending / paidOrders.length : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,7 +179,7 @@ export default async function CustomerDetailPage({
                   </p>
                   <p className="text-4xl font-bold">{totalOrders}</p>
                   <p className="text-chart-1-foreground/60 text-caption">
-                    pesanan selesai & dibayar
+                    pesanan aktif &amp; selesai
                   </p>
                 </div>
                 <div className="h-16 w-16 rounded-full bg-primary-foreground/20 flex items-center justify-center">
@@ -363,7 +366,13 @@ export default async function CustomerDetailPage({
                   Total {allOrders.length} pesanan
                 </Badge>
                 <Badge variant="outline" className="bg-success/10 text-success">
-                  {completedPaidOrders.length} selesai & dibayar
+                  {
+                    allOrders.filter(
+                      (o) =>
+                        o.status === "COMPLETED" && o.paymentStatus === "PAID",
+                    ).length
+                  }{" "}
+                  selesai &amp; dibayar
                 </Badge>
               </div>
             </div>

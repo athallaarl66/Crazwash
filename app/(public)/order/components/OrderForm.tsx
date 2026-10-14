@@ -189,9 +189,6 @@ function OrderForm({ products, paymentDestinations }: OrderFormProps) {
             items={cartItems}
             totalPrice={totalPrice}
             onRemoveItem={removeItem}
-            onCheckout={() => setCurrentStep(2)}
-            canCheckout={canProceed()}
-            currentStep={currentStep}
           />
         </div>
       </div>

@@ -244,10 +244,42 @@ type GetAllOrdersParams = {
   limit?: number;
 };
 
-export async function updateOrderStatus(orderId: number, status: OrderStatus) {
+/**
+ * The single writer for an order's status: appends a status-history entry and
+ * stamps `completedDate` on completion, so every caller records the same trail
+ * the detail view reads back. Authorization stays with the callers.
+ */
+export async function updateOrderStatus(
+  orderId: number,
+  status: OrderStatus,
+  adminNotes?: string,
+) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { statusHistory: true },
+  });
+
+  if (!order) {
+    throw new Error("Order tidak ditemukan");
+  }
+
+  const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+
   return prisma.order.update({
     where: { id: orderId },
-    data: { status },
+    data: {
+      status,
+      ...(adminNotes ? { adminNotes } : {}),
+      statusHistory: [
+        ...(history as any[]),
+        {
+          status,
+          timestamp: new Date().toISOString(),
+          note: adminNotes || `Status diubah menjadi ${status}`,
+        },
+      ],
+      ...(status === "COMPLETED" ? { completedDate: new Date() } : {}),
+    },
   });
 }
 

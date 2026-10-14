@@ -1,14 +1,13 @@
 // app/admin/orders/[id]/OrderDetailView.tsx
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import type { OrderWithServices } from "@/lib/orderService";
-import {
-  ORDER_STATUS_COLORS,
-  ORDER_STATUS_LABELS,
-  PAYMENT_STATUS_LABELS,
-} from "@/lib/constants";
+import OrderStatusBadge from "../components/OrderStatusBadge";
+import PaymentStatusBadge from "../components/PaymentStatusBadge";
 
 type StatusHistoryEntry = {
   status?: string;
@@ -47,18 +46,25 @@ export default function OrderDetailView({
 
   return (
     <div className="container-custom py-8 space-y-8">
+      <Link
+        href="/admin/orders"
+        className="inline-flex items-center gap-2 text-body-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Kembali ke Orders
+      </Link>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-h2 text-primary">Order #{order.id}</h1>
 
+        {/* Status and payment are changed from here, so the operator does not have
+            to hunt the order down in the list to move it forward. */}
         <div className="flex gap-2">
-          <Badge className={ORDER_STATUS_COLORS[order.status]}>
-            {ORDER_STATUS_LABELS[order.status]}
-          </Badge>
-          <Badge
-            variant={order.paymentStatus === "PAID" ? "default" : "destructive"}
-          >
-            {PAYMENT_STATUS_LABELS[order.paymentStatus]}
-          </Badge>
+          <OrderStatusBadge orderId={order.id} status={order.status} />
+          <PaymentStatusBadge
+            orderId={order.id}
+            status={order.paymentStatus}
+          />
         </div>
       </div>
 

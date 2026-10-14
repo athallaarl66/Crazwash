@@ -104,7 +104,7 @@ function Step1ServiceSelection({
                 className="space-y-4 mt-0"
               >
                 {/* Category Description */}
-                <div className="p-4 bg-gradient-to-r from-primary/5 to-accent/10 rounded-xl border-2 border-primary/20">
+                <div className="p-4 bg-muted rounded-xl border-2 border-border">
                   <p className="text-body text-card-foreground">
                     <strong className="text-primary font-bold">
                       {config.label}:
@@ -145,8 +145,8 @@ function Step1ServiceSelection({
               onClick={onNext}
               disabled={!canProceed}
               size="lg"
-              className="bg-gradient-to-r from-primary to-accent text-primary-foreground 
-                       hover:opacity-90 transition-opacity shadow-soft-lg
+              className="bg-primary text-primary-foreground
+                       hover:opacity-90 transition-opacity shadow-soft
                        disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
             >
               Selanjutnya

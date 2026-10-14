@@ -35,12 +35,12 @@ function ProgressSteps({ currentStep }: ProgressStepsProps) {
               <div
                 className={`
                   w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
-                  transition-all duration-300
+                  transition-colors duration-200
                   ${
                     isCompleted
                       ? "bg-success"
                       : isActive
-                        ? "bg-gradient-to-br from-primary to-accent"
+                        ? "bg-primary"
                         : "bg-muted"
                   }
                 `}
@@ -72,10 +72,11 @@ function ProgressSteps({ currentStep }: ProgressStepsProps) {
               </p>
             </motion.div>
 
-            {/* Connector Line */}
+            {/* Connector Line — horizontal only where the steps sit in a row,
+                so the vertical mobile stack has no stray bars */}
             {index < STEPS.length - 1 && (
               <div
-                className={`flex-1 h-1 mx-2 md:mx-4 transition-all duration-300 rounded-full ${
+                className={`hidden sm:block flex-1 h-1 mx-2 md:mx-4 transition-colors duration-200 rounded-full ${
                   currentStep > step.id ? "bg-success" : "bg-border"
                 }`}
               />

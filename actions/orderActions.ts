@@ -6,12 +6,14 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/utils";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { adminGuardResult } from "@/lib/api-error-handler";
 import {
   createOrder,
   InvalidServiceSelectionError,
+  updateOrderStatus as updateOrderStatusInDb,
   type OrderWithServices,
 } from "@/lib/orderService";
 import {
@@ -55,7 +57,9 @@ export async function createOrderAction(formData: FormData): Promise<{
   try {
     // 1. Extract customer data
     const customerName = formData.get("customerName") as string;
-    const customerPhone = formData.get("customerPhone") as string;
+    // The form prefixes +62, so the stored number is the local part only; a pasted
+    // leading zero or country code is trimmed here too, at the trust boundary.
+    const customerPhone = normalizePhone(formData.get("customerPhone") as string);
     const customerEmail = (formData.get("customerEmail") as string) || null;
     const address = formData.get("address") as string;
     const pickupDateStr = formData.get("pickupDate") as string;
@@ -111,9 +115,18 @@ export async function createOrderAction(formData: FormData): Promise<{
     try {
       // Match on phone first, then on email: the first contact detail the customer
       // actually provided wins, so a phone match never adopts an unrelated account.
+      // Accounts written before the number was normalised may hold "08...", "+62..."
+      // or "62...", so all four spellings of the same number are matched.
+      const phoneSpellings = [
+        customerPhone,
+        `0${customerPhone}`,
+        `62${customerPhone}`,
+        `+62${customerPhone}`,
+      ];
+
       const existingUser =
         (await prisma.user.findFirst({
-          where: { phone: customerPhone, deletedAt: null },
+          where: { phone: { in: phoneSpellings }, deletedAt: null },
         })) ??
         (customerEmail
           ? await prisma.user.findFirst({
@@ -211,42 +224,12 @@ export async function updateOrderStatus(
   if (unauthorized) return unauthorized;
 
   try {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: { statusHistory: true },
-    });
-
-    if (!order) {
-      return { success: false, error: "Order tidak ditemukan" };
-    }
-
-    const statusHistory = [
-      ...(order.statusHistory as any[]),
-      {
-        status: newStatus,
-        timestamp: new Date().toISOString(),
-        note: adminNotes || `Status diubah menjadi ${newStatus}`,
-      },
-    ];
-
-    const updateData: any = {
-      status: newStatus,
-      adminNotes,
-      statusHistory,
-    };
-
-    // If order is completed, set completedDate
-    if (newStatus === "COMPLETED") {
-      updateData.completedDate = new Date();
-    }
-
-    await prisma.order.update({
-      where: { id: orderId },
-      data: updateData,
-    });
+    // One writer for the status trail: lib/orderService owns the history entry and
+    // the completion timestamp, so this action does not duplicate that logic.
+    await updateOrderStatusInDb(orderId, newStatus, adminNotes);
 
     revalidatePath("/admin/orders");
-    revalidatePath("/admin/customers"); // 🔥 Also revalidate customers when order status changes
+    revalidatePath("/admin/customers");
 
     return { success: true };
   } catch (error) {

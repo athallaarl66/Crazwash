@@ -16,7 +16,8 @@ export type CustomerSummary = {
   city: string;
   totalOrders: number;
   totalSpending: number;
-  lastOrderDate: string;
+  /** Null when the customer has no order yet - never a stand-in for "now". */
+  lastOrderDate: string | null;
   status: CustomerStatus;
   userId: number;
 };
@@ -87,12 +88,14 @@ export async function getCustomersSummary(): Promise<CustomerSummary[]> {
       address: true,
       city: true, // ✅ AMBIL CITY DARI USER
       orders: {
+        // Every order the customer actually placed counts; only a cancelled one is
+        // dropped. Spending is still read off the paid ones.
         where: {
-          status: OrderStatus.COMPLETED,
-          paymentStatus: PaymentStatus.PAID,
+          status: { not: OrderStatus.CANCELLED },
         },
         select: {
           totalPrice: true,
+          paymentStatus: true,
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
@@ -103,6 +106,14 @@ export async function getCustomersSummary(): Promise<CustomerSummary[]> {
 
   // GROUP BY PHONE (HANDLE NULL & DUPLICATE)
   const customerMap = new Map<string, CustomerSummary>();
+
+  /** Only money actually collected counts as spending. */
+  const paidTotal = (
+    orders: { totalPrice: unknown; paymentStatus: PaymentStatus }[],
+  ) =>
+    orders
+      .filter((o) => o.paymentStatus === PaymentStatus.PAID)
+      .reduce((sum, o) => sum + Number(o.totalPrice), 0);
 
   users.forEach((user) => {
     const formattedPhone = formatPhoneForNull(user.phone, user.id);
@@ -117,12 +128,8 @@ export async function getCustomersSummary(): Promise<CustomerSummary[]> {
         address: user.address || "",
         city: user.city || "Bandung", // ✅ AMBIL DARI USER.CITY
         totalOrders: user.orders.length,
-        totalSpending: user.orders.reduce(
-          (sum, o) => sum + Number(o.totalPrice),
-          0,
-        ),
-        lastOrderDate:
-          lastOrder?.createdAt.toISOString() || new Date().toISOString(),
+        totalSpending: paidTotal(user.orders),
+        lastOrderDate: lastOrder ? lastOrder.createdAt.toISOString() : null,
         status: computeStatusFromLastOrder(lastOrder?.createdAt || null),
         userId: user.id,
       });
@@ -132,16 +139,15 @@ export async function getCustomersSummary(): Promise<CustomerSummary[]> {
 
       // Update stats
       existing.totalOrders += user.orders.length;
-      existing.totalSpending += user.orders.reduce(
-        (sum, o) => sum + Number(o.totalPrice),
-        0,
-      );
+      existing.totalSpending += paidTotal(user.orders);
 
       // Update last order date
       const userLastOrder = user.orders[0];
       if (userLastOrder) {
-        const existingDate = new Date(existing.lastOrderDate);
-        if (userLastOrder.createdAt > existingDate) {
+        const existingDate = existing.lastOrderDate
+          ? new Date(existing.lastOrderDate)
+          : null;
+        if (!existingDate || userLastOrder.createdAt > existingDate) {
           existing.lastOrderDate = userLastOrder.createdAt.toISOString();
           existing.status = computeStatusFromLastOrder(userLastOrder.createdAt);
         }
@@ -149,9 +155,11 @@ export async function getCustomersSummary(): Promise<CustomerSummary[]> {
     }
   });
 
+  // Customers with no order sit last; they have no date to sort by.
   return Array.from(customerMap.values()).sort(
     (a, b) =>
-      new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime(),
+      (b.lastOrderDate ? new Date(b.lastOrderDate).getTime() : 0) -
+      (a.lastOrderDate ? new Date(a.lastOrderDate).getTime() : 0),
   );
 }
 
@@ -219,22 +227,25 @@ export async function getCustomerByPhone(
 
   if (allOrders.length === 0) return null;
 
-  // Filter hanya COMPLETED & PAID untuk stats
-  const completedPaidOrders = allOrders.filter(
-    (o) =>
-      o.status === OrderStatus.COMPLETED &&
-      o.paymentStatus === PaymentStatus.PAID,
+  // Same definition the list and the detail page use: every non-cancelled order
+  // counts, spending is what was paid.
+  const activeOrders = allOrders.filter(
+    (o) => o.status !== OrderStatus.CANCELLED,
+  );
+  const paidOrders = activeOrders.filter(
+    (o) => o.paymentStatus === PaymentStatus.PAID,
   );
 
   const latestOrder = allOrders[0];
   const firstOrder = allOrders[allOrders.length - 1];
 
-  const totalOrders = completedPaidOrders.length;
-  const totalSpending = completedPaidOrders.reduce(
+  const totalOrders = activeOrders.length;
+  const totalSpending = paidOrders.reduce(
     (sum, o) => sum + Number(o.totalPrice),
     0,
   );
-  const averageOrderValue = totalOrders > 0 ? totalSpending / totalOrders : 0;
+  const averageOrderValue =
+    paidOrders.length > 0 ? totalSpending / paidOrders.length : 0;
 
   const status = computeStatusFromLastOrder(latestOrder.createdAt);
   const customer = latestOrder.customer;
