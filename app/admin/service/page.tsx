@@ -8,23 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, RefreshCw, Search, AlertCircle } from "lucide-react";
 import ProductsTable from "./ProductsTable";
-import { ProductCategory } from "@prisma/client";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: string;
-  category: ProductCategory;
-  duration: number;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { ProductListItem } from "@/lib/productService";
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductListItem[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");

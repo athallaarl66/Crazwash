@@ -76,7 +76,6 @@ export default function OrderFilters() {
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-9"
-            suppressHydrationWarning
           />
         </div>
 
@@ -90,7 +89,7 @@ export default function OrderFilters() {
             value={currentPayment || "ALL"}
             onValueChange={(value) => updateParam("payment", value)}
           >
-            <SelectTrigger className="w-[160px]" suppressHydrationWarning>
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Pembayaran" />
             </SelectTrigger>
             <SelectContent>
@@ -106,7 +105,7 @@ export default function OrderFilters() {
             value={currentStatus || "ALL"}
             onValueChange={(value) => updateParam("status", value)}
           >
-            <SelectTrigger className="w-[160px]" suppressHydrationWarning>
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Status Order" />
             </SelectTrigger>
             <SelectContent>

@@ -49,7 +49,7 @@ function MobileCartSheet({
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            key="backdrop" // ← TAMBAH KEY UNIK
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -61,7 +61,7 @@ function MobileCartSheet({
         {/* Expanded Sheet */}
         {isExpanded && (
           <motion.div
-            key="expanded" // ← TAMBAH KEY UNIK
+            key="expanded"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -93,7 +93,7 @@ function MobileCartSheet({
             <div className="p-4 space-y-3 overflow-y-auto max-h-[40vh]">
               {items.map((item, index) => (
                 <div
-                  key={`${item.id}-${index}`} // ← TAMBAH INDEX SEBAGAI FALLBACK
+                  key={`${item.id}-${index}`}
                   className="p-3 bg-gradient-to-r from-primary/5 to-accent/10 rounded-xl 
                            border-2 border-primary/20"
                 >

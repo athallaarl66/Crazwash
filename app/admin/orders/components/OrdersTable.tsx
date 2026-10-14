@@ -15,7 +15,7 @@ import OrderStatusBadge from "./OrderStatusBadge";
 import PaymentStatusBadge from "./PaymentStatusBadge";
 import type { OrderWithServices } from "@/lib/orderService";
 import { formatDate, formatCurrency } from "@/lib/utils";
-import { Eye } from "lucide-react"; // ← REMOVE MoreVertical, ExternalLink, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+import { Eye } from "lucide-react";
 
 export default function OrdersTable({
   orders,

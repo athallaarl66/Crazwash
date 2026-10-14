@@ -17,16 +17,22 @@ import {
 export interface CreateOrderInput {
   customerName: string;
   customerPhone: string;
-  customerEmail?: string;
+  customerEmail?: string | null;
   address: string;
   city?: string;
-  pickupDate?: Date;
-  notes?: string;
+  pickupDate?: Date | null;
+  notes?: string | null;
+  paymentMethod?: string | null;
+  /** Account the checkout matched, when it did. */
+  customerId?: number | null;
   services: {
     serviceId: number;
     shoesQty: number;
   }[];
 }
+
+/** A requested service does not exist (or is no longer on offer). */
+export class InvalidServiceSelectionError extends Error {}
 
 export type SerializedService = Omit<Product, "price"> & {
   price: number;
@@ -51,6 +57,11 @@ export type OrderWithServices = Omit<Order, "totalPrice"> & {
    CREATE ORDER
 ======================= */
 
+/**
+ * The single order-creation path: the public checkout action goes through here, so
+ * the stored fields, the status-history entry and the administrator notification are
+ * written in exactly one place.
+ */
 export async function createOrder(
   input: CreateOrderInput,
 ): Promise<OrderWithServices> {
@@ -69,7 +80,9 @@ export async function createOrder(
   const orderServicesData = input.services.map((item) => {
     const product = products.find((p) => p.id === item.serviceId);
     if (!product) {
-      throw new Error(`Service ${item.serviceId} not found`);
+      throw new InvalidServiceSelectionError(
+        `Service ${item.serviceId} not found`,
+      );
     }
 
     const unitPrice = Number(product.price);
@@ -84,34 +97,77 @@ export async function createOrder(
     };
   });
 
-  const order = await prisma.order.create({
-    data: {
-      orderNumber: generateOrderNumber(),
-      customerName: input.customerName,
-      customerPhone: input.customerPhone,
-      customerEmail: input.customerEmail,
-      address: input.address,
-      city: input.city || "Bandung",
-      pickupDate: input.pickupDate,
-      notes: input.notes,
-      totalPrice,
-      status: "PENDING",
-      paymentStatus: "UNPAID",
-      services: {
-        create: orderServicesData,
-      },
-    },
-    include: {
-      customer: true,
-      services: {
-        include: {
-          product: true,
+  // Two checkouts can land in the same millisecond. The unique index on
+  // `orderNumber` stays the arbiter, so a reported collision is retried with a
+  // freshly generated number instead of failing the customer's order.
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const order = await prisma.order.create({
+        data: {
+          orderNumber: generateOrderNumber(),
+          customerName: input.customerName,
+          customerPhone: input.customerPhone,
+          customerEmail: input.customerEmail ?? null,
+          address: input.address,
+          city: input.city || "Bandung",
+          pickupDate: input.pickupDate ?? null,
+          notes: input.notes ?? null,
+          paymentMethod: input.paymentMethod ?? null,
+          totalPrice,
+          status: "PENDING",
+          paymentStatus: "UNPAID",
+          statusHistory: [
+            {
+              status: "PENDING",
+              timestamp: new Date().toISOString(),
+              note: "Pesanan dibuat, menunggu konfirmasi pembayaran",
+            },
+          ],
+          ...(input.customerId
+            ? { customer: { connect: { id: input.customerId } } }
+            : {}),
+          services: {
+            create: orderServicesData,
+          },
         },
-      },
-    },
-  });
+        include: {
+          customer: true,
+          services: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
 
-  return serializeOrder(order);
+      // Tell the operators. The writer swallows its own failures, so an
+      // unwritable notification never fails the order.
+      await notifyAdminsOfNewOrder({
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        totalPrice: Number(order.totalPrice),
+      });
+
+      return serializeOrder(order);
+    } catch (error) {
+      if (attempt >= ORDER_NUMBER_ATTEMPTS || !isOrderNumberCollision(error)) {
+        throw error;
+      }
+    }
+  }
+}
+
+/** How many order numbers to try before letting the customer see the failure. */
+const ORDER_NUMBER_ATTEMPTS = 4;
+
+/** The unique index on `orderNumber` rejected the insert. */
+function isOrderNumberCollision(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
 }
 
 /* =======================
@@ -212,7 +268,7 @@ export async function getAllOrders({
     ];
   }
 
-  // ✅ FIX: Validasi paymentStatus sesuai schema
+  // Only the values the schema accepts are applied.
   if (paymentStatus) {
     const validStatuses = ["UNPAID", "PAID", "REFUNDED"] as PaymentStatus[];
     if (validStatuses.includes(paymentStatus)) {

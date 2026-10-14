@@ -33,20 +33,11 @@ import {
   Clock,
   Tag,
 } from "lucide-react";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: string;
-  category: ProductCategory;
-  duration: number;
-  isActive: boolean;
-}
+import type { ProductFormData } from "@/lib/productService";
 
 interface EditFormProps {
   productId: string;
-  initialData?: Product;
+  initialData?: ProductFormData;
 }
 
 export default function EditForm({ productId, initialData }: EditFormProps) {
@@ -54,7 +45,9 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [product, setProduct] = useState<Product | null>(initialData || null);
+  const [product, setProduct] = useState<ProductFormData | null>(
+    initialData || null,
+  );
 
   useEffect(() => {
     if (!initialData) {
@@ -97,11 +90,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
       isActive: formData.get("isActive") === "on",
     };
 
-    // ✅ TAMBAHIN: Logging sebelum fetch
-    console.log("📤 === SUBMITTING DATA ===");
-    console.log("Product ID:", productId);
-    console.log("Data:", JSON.stringify(data, null, 2));
-
     try {
       const response = await fetch(`/api/admin/service/${productId}`, {
         method: "PATCH",
@@ -116,18 +104,12 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
 
       const result = await response.json();
 
-      // ✅ TAMBAHIN: Logging setelah response
-      console.log("📥 === API RESPONSE ===");
-      console.log("Status:", response.status);
-      console.log("Result:", JSON.stringify(result, null, 2));
-
       if (!response.ok) {
         throw new Error(result.error || `Error ${response.status}`);
       }
 
       if (result.success) {
         setSuccess("Layanan berhasil diperbarui!");
-        console.log("✅ SUCCESS - Redirecting...");
         setTimeout(() => {
           router.push("/admin/service");
           router.refresh();
@@ -136,7 +118,6 @@ export default function EditForm({ productId, initialData }: EditFormProps) {
         setError(result.error || "Gagal memperbarui layanan");
       }
     } catch (err: any) {
-      // ✅ TAMBAHIN: Logging error
       console.error("❌ SUBMIT ERROR:", err);
       setError(err.message || "Terjadi kesalahan");
     } finally {

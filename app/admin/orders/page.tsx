@@ -6,6 +6,7 @@ import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 type PageProps = {
   searchParams: Promise<{
@@ -24,7 +25,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const validPaymentStatus =
     params.payment && ["UNPAID", "PAID", "REFUNDED"].includes(params.payment)
       ? (params.payment as PaymentStatus)
-      : undefined; // ← FIX: tambah undefined
+      : undefined;
 
   let result;
   try {
@@ -104,8 +105,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               <CardTitle className="text-h4">Daftar Pesanan</CardTitle>
               <p className="text-body-sm text-muted-foreground mt-1">
                 Menampilkan {result.data.length} dari {result.total} pesanan •
-                Total lunas (sesuai filter): Rp{" "}
-                {paidRevenue.toLocaleString("id-ID")}
+                Total lunas (sesuai filter): {formatCurrency(paidRevenue)}
               </p>
             </div>
             <div className="text-body-sm text-muted-foreground bg-muted px-3 py-1 rounded-md">

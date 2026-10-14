@@ -9,20 +9,16 @@ import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { adminGuardResult } from "@/lib/api-error-handler";
-import { notifyAdminsOfNewOrder } from "@/lib/orderService";
+import {
+  createOrder,
+  InvalidServiceSelectionError,
+  type OrderWithServices,
+} from "@/lib/orderService";
 import {
   ORDER_RATE_LIMIT,
   clientIdentifier,
   rateLimit,
 } from "@/lib/rate-limit";
-
-function generateOrderNumber(): string {
-  const timestamp = Date.now().toString();
-  const random = Math.floor(Math.random() * 1000)
-    .toString()
-    .padStart(3, "0");
-  return `ORD-${timestamp}-${random}`;
-}
 
 // Helper function to extract city from address
 function extractCityFromAddress(address: string): string {
@@ -57,8 +53,6 @@ export async function createOrderAction(formData: FormData): Promise<{
   error?: string;
 }> {
   try {
-    console.log("🔵 Starting createOrderAction...");
-
     // 1. Extract customer data
     const customerName = formData.get("customerName") as string;
     const customerPhone = formData.get("customerPhone") as string;
@@ -68,21 +62,9 @@ export async function createOrderAction(formData: FormData): Promise<{
     const notes = (formData.get("notes") as string) || null;
     const paymentMethod = (formData.get("paymentMethod") as string) || null;
 
-    console.log("📋 Form data extracted:", {
-      customerName,
-      customerPhone,
-      customerEmail,
-      address,
-      pickupDateStr,
-      notes,
-      paymentMethod,
-    });
-
     // 2. Parse services
     const productIds = formData.getAll("productId[]") as string[];
     const shoesQties = formData.getAll("shoesQty[]") as string[];
-
-    console.log("🛒 Services:", productIds, shoesQties);
 
     // 3. Validation
     if (!customerName || !customerPhone || !address) {
@@ -121,11 +103,9 @@ export async function createOrderAction(formData: FormData): Promise<{
 
     // 5. Extract city from address
     const city = extractCityFromAddress(address);
-    console.log("📍 City extracted:", city);
 
-    // ============================================
-    // 🔥 CRITICAL: LINK OR CREATE USER
-    // ============================================
+    // 5. Resolve the customer account: link an existing one, or create a record
+    // checkout owns. Never rewrites an existing account.
     let userId: number | null = null;
 
     try {
@@ -145,7 +125,6 @@ export async function createOrderAction(formData: FormData): Promise<{
         // Link only. Name, address and especially role belong to the account owner;
         // checkout never rewrites them.
         userId = existingUser.id;
-        console.log("🔗 Linked order to existing user ID:", userId);
       } else {
         // A checkout-created record must not be sign-in capable: the stored
         // credential is a hash of a random secret that is never disclosed, so the
@@ -166,7 +145,6 @@ export async function createOrderAction(formData: FormData): Promise<{
         });
 
         userId = createdUser.id;
-        console.log("✅ Created customer record with ID:", userId);
       }
     } catch (userError) {
       console.error("❌ User creation/update error:", userError);
@@ -174,113 +152,43 @@ export async function createOrderAction(formData: FormData): Promise<{
       // but won't be linked to a user in the database
     }
 
-    // 5. Get product prices
-    const products = await prisma.product.findMany({
-      where: {
-        id: { in: productIds.map((id) => parseInt(id)) },
-        isActive: true,
-        deletedAt: null,
-      },
-      select: { id: true, price: true, name: true },
-    });
-
-    if (products.length !== productIds.length) {
-      console.error("❌ Invalid products found");
-      return { success: false, error: "Ada layanan yang tidak valid" };
-    }
-
-    console.log("💰 Products found:", products);
-
-    // 6. Calculate total
-    const priceMap = new Map(
-      products.map((p) => [p.id, parseFloat(p.price.toString())]),
-    );
-
-    let totalPrice = 0;
-    const services = productIds.map((idStr, index) => {
-      const productId = parseInt(idStr);
-      const shoesQty = parseInt(shoesQties[index]);
-      const unitPrice = priceMap.get(productId) || 0;
-      const subtotal = unitPrice * shoesQty;
-
-      totalPrice += subtotal;
-
-      return {
-        productId,
-        shoesQty,
-        unitPrice,
-        subtotal,
-      };
-    });
-
-    console.log("🧮 Total calculated:", totalPrice);
-
-    // 7. Parse pickup date
+    // 6. Create the order: one path, owned by the order service
     const pickupDate = pickupDateStr ? new Date(pickupDateStr) : null;
 
-    // 8. Generate order number
-    const orderNumber = generateOrderNumber();
-    console.log("📦 Order number generated:", orderNumber);
-
-    // 9. Create order WITH userId link
-    const orderData: any = {
-      orderNumber,
-      customerName,
-      customerPhone,
-      customerEmail,
-      address,
-      city: city, // ✅ Use extracted city, not hardcoded
-      pickupDate,
-      notes,
-      paymentMethod,
-      totalPrice,
-      status: "PENDING",
-      paymentStatus: "UNPAID",
-      statusHistory: [
-        {
-          status: "PENDING",
-          timestamp: new Date().toISOString(),
-          note: "Pesanan dibuat, menunggu konfirmasi pembayaran",
-        },
-      ],
-      services: {
-        create: services,
-      },
-    };
-
-    // Add customerId if we have a userId
-    if (userId) {
-      orderData.customer = { connect: { id: userId } };
-      console.log("🔗 Linking order to user ID:", userId);
+    let order: OrderWithServices;
+    try {
+      order = await createOrder({
+        customerName,
+        customerPhone,
+        customerEmail,
+        address,
+        city,
+        pickupDate,
+        notes,
+        paymentMethod,
+        customerId: userId,
+        services: productIds.map((idStr, index) => ({
+          serviceId: parseInt(idStr),
+          shoesQty: parseInt(shoesQties[index]),
+        })),
+      });
+    } catch (error) {
+      if (error instanceof InvalidServiceSelectionError) {
+        console.error("❌ Invalid products found");
+        return { success: false, error: "Ada layanan yang tidak valid" };
+      }
+      throw error;
     }
-
-    const order = await prisma.order.create({
-      data: orderData,
-    });
-
-    console.log("✅ Order created successfully:", {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      customerId: order.customerId,
-    });
-
-    // Tell the operators. The writer lives in the order service and swallows its own
-    // failures, so an unwritable notification never fails the order.
-    await notifyAdminsOfNewOrder({
-      orderNumber: order.orderNumber,
-      customerName: order.customerName,
-      totalPrice: parseFloat(order.totalPrice.toString()),
-    });
 
     // Revalidate both orders and customers pages
     revalidatePath("/admin/orders");
-    revalidatePath("/admin/customers"); // 🔥 CRITICAL: Revalidate customers page
+    revalidatePath("/admin/customers");
 
     return {
       success: true,
       orderNumber: order.orderNumber,
       customerName: order.customerName,
-      totalPrice: parseFloat(order.totalPrice.toString()),
+      totalPrice: order.totalPrice,
       paymentMethod: order.paymentMethod || "",
     };
   } catch (error: any) {

@@ -13,17 +13,10 @@ import { Step4Payment } from "./steps/Step4Payment";
 import { CartSummary } from "./cart/CartSummary";
 import { MobileCartSheet } from "./cart/MobileCartSheet";
 import type { PaymentDestination } from "@/lib/business-config";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  category: string;
-}
+import type { ProductWithNumericPrice } from "@/lib/productService";
 
 interface OrderFormProps {
-  products: Product[];
+  products: ProductWithNumericPrice[];
   /** Payment destinations configured by the business; see lib/business-config.ts */
   paymentDestinations: PaymentDestination[];
 }

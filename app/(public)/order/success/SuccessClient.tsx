@@ -11,6 +11,7 @@ import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, Home, MessageCircle } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface SuccessClientProps {
   order: {
@@ -46,14 +47,6 @@ export default function SuccessClient({
 
     return () => clearInterval(interval);
   }, []);
-
-  // Format currency
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value);
 
   const waMessage = `Halo Admin 👋
 

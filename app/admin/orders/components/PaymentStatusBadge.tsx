@@ -76,7 +76,6 @@ export default function PaymentStatusBadge({ orderId, status }: Props) {
             "h-8 w-[140px] sm:w-[160px] text-caption border",
             PAYMENT_STATUS_COLORS[current],
           )}
-          suppressHydrationWarning
         >
           {isPending ? (
             <div className="flex items-center gap-2">

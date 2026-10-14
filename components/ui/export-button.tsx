@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatCurrency } from "@/lib/utils";
 
 interface ExportButtonProps {
   data: any;
@@ -87,14 +88,8 @@ export default function ExportButton({
             ["Alamat", data.customer.address],
             ["Kota", data.customer.city],
             ["Total Orders", data.stats.totalOrders],
-            [
-              "Total Spending",
-              "Rp " + data.stats.totalSpending.toLocaleString("id-ID"),
-            ],
-            [
-              "Average Order Value",
-              "Rp " + data.stats.averageOrderValue.toLocaleString("id-ID"),
-            ],
+            ["Total Spending", formatCurrency(data.stats.totalSpending)],
+            ["Average Order Value", formatCurrency(data.stats.averageOrderValue)],
             [
               "First Order",
               new Date(data.customer.firstOrderDate).toLocaleDateString(
@@ -161,7 +156,6 @@ export default function ExportButton({
           variant="outline"
           size="sm"
           disabled={loading}
-          suppressHydrationWarning // ← TAMBAH INI
         >
           <Download className="h-4 w-4 mr-2" />
           {loading ? "Exporting..." : "Export"}

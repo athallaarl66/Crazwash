@@ -29,6 +29,29 @@ export type SerializedProduct = Omit<Product, "price"> & {
   price: string; // Decimal to string for JSON
 };
 
+/**
+ * Narrowings of the generated model for the surfaces that read products. Each one
+ * is derived from the Prisma model, so a schema change that removes a field - the
+ * `stock` field the hand-written types kept for months - fails the typecheck here
+ * instead of drifting silently.
+ */
+type ProductBase = Pick<Product, "id" | "name" | "description" | "category">;
+
+/** The order flow receives prices already converted to numbers. */
+export type ProductWithNumericPrice = ProductBase & { price: number };
+
+/** The public services page renders the catalogue, price as serialized. */
+export type ServiceCatalogItem = ProductBase & { price: string; duration: number };
+
+/** One row of the admin services console. */
+export type ProductListItem = ServiceCatalogItem & {
+  isActive: boolean;
+  createdAt: string;
+};
+
+/** What the admin edit form is initialized with. */
+export type ProductFormData = Omit<ProductListItem, "createdAt">;
+
 // ============================================
 // UTILITIES
 // ============================================
@@ -167,7 +190,7 @@ export async function updateProduct(
 
   const updateData: any = {};
 
-  // ✅ FIX: Tambahin pengecekan slug juga
+  // A rename has to move the slug with it.
   if (data.name !== undefined) {
     updateData.name = data.name.trim();
     updateData.slug = generateSlug(data.name);

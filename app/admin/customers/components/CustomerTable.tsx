@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { Customer } from "../types";
+import { formatCurrency } from "@/lib/utils";
 // REMOVE useState
 
 const statusColor: Record<Customer["status"], string> = {
@@ -29,14 +30,6 @@ export default function CustomersTable({
   customers: Customer[];
 }) {
   // REMOVE deletingId state and handleDelete function
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="rounded-lg border overflow-x-auto shadow-soft">

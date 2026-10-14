@@ -89,7 +89,6 @@ export default function OrderStatusBadge({ orderId, status }: Props) {
             "h-8 w-[160px] sm:w-[180px] text-caption border",
             ORDER_STATUS_COLORS[current],
           )}
-          suppressHydrationWarning
         >
           {isPending ? (
             <div className="flex items-center gap-2">

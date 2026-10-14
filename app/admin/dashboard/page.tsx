@@ -25,6 +25,7 @@ import CustomerStats from "./components/Customerstats";
 import CategoryBreakdown from "./components/Categorybreakdown";
 import SectionHeader from "./components/SectionHeader";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Lazy load heavy charts
@@ -92,13 +93,6 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
-
-  const formatCurrency = (v: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(v);
 
   if (loading) {
     return (
